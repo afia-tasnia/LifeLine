@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Requests</title>
+    <link rel="stylesheet" href="assets/blood_list.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+</head>
+
+<body class="bg-[#F9F7F2] text-[#3D2B2B] min-h-screen">
+
+    <div id="navbar-placeholder" class="sticky top-0 z-50"></div>
+
+    <header class="max-w-5xl mx-auto mb-12 mt-12 px-4 md:px-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-[#E8E2D9] pb-8">
+            <div>
+                <h1 class="text-4xl font-serif mb-2">Urgent Appeals</h1>
+                <p class="text-sm opacity-60">Every second counts. View active blood requests in your area.</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-4">
+                <a href="emergency_blood_list.html">
+                    <button
+                        class="btn-emergency-filter py-3 px-6 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm">
+                        <span class="dot"></span>
+                        Emergency Only
+                    </button>
+                </a>
+
+                <select
+                    class="filter-select py-3 pl-6 pr-12 bg-white border border-[#E8E2D9] rounded-full text-[10px] font-bold uppercase tracking-widest cursor-pointer shadow-sm">
+                    <option>All Groups</option>
+                    <option>A+</option>
+                    <option>A-</option>
+                    <option>B+</option>
+                    <option>B-</option>
+                    <option>O+</option>
+                    <option>O-</option>
+                    <option>AB+</option>
+                    <option>AB-</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto space-y-6 px-4 md:px-8 pb-20">
+
+        <div
+            class="donor-card card-emergency emergency-pulse bg-white p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm rounded-xl">
+            <div class="flex-1">
+                <div class="flex items-center gap-4 mb-4">
+                    <span
+                        class="bg-red-600 text-white text-[10px] px-3 py-1 font-bold tracking-widest rounded-full uppercase">Emergency</span>
+                    <h4 class="text-3xl patient-name">Rahman Ali</h4>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Hospital</span> <span
+                            class="font-medium">Dhaka Medical College</span></p>
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Contact</span> <span
+                            class="font-mono font-bold">+880 1700-112233</span></p>
+                    <div class="md:col-span-2">
+                        <span class="deadline-highlight text-xs">Need by: Today, before 4:00 PM</span>
+                    </div>
+                </div>
+            </div>
+            <div class="group-circle shadow-inner">
+                <span class="text-4xl font-bold text-red-600">B+</span>
+                <span class="text-[8px] uppercase font-bold opacity-40">Group</span>
+            </div>
+        </div>
+
+        <div
+            class="donor-card bg-white border border-[#E8E2D9] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm rounded-xl">
+            <div class="flex-1">
+                <h4 class="text-3xl patient-name mb-4">Sultana Kamal</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Hospital</span> <span
+                            class="font-medium">Evercare Hospital</span></p>
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Contact</span> <span
+                            class="font-mono font-bold">+880 1811-445566</span></p>
+                    <div class="md:col-span-2">
+                        <span class="deadline-normal text-xs">Need by: 25 March, 10:00 AM</span>
+                    </div>
+                </div>
+            </div>
+            <div class="group-circle">
+                <span class="text-4xl font-bold text-[#8E4444]">O-</span>
+                <span class="text-[8px] uppercase font-bold opacity-40">Group</span>
+            </div>
+        </div>
+
+        <div
+            class="donor-card bg-white border border-[#E8E2D9] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm rounded-xl">
+            <div class="flex-1">
+                <h4 class="text-3xl patient-name mb-4">Tanvir Ahmed</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Hospital</span> <span
+                            class="font-medium">Sylhet MAG Osmani</span></p>
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Contact</span> <span
+                            class="font-mono font-bold">+880 1912-778899</span></p>
+                    <div class="md:col-span-2">
+                        <span class="deadline-normal text-xs">Need by: 26 March, Evening</span>
+                    </div>
+                </div>
+            </div>
+            <div class="group-circle">
+                <span class="text-4xl font-bold text-[#8E4444]">A-</span>
+            </div>
+        </div>
+
+        <div
+            class="donor-card bg-white border border-[#E8E2D9] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm rounded-xl">
+            <div class="flex-1">
+                <h4 class="text-3xl patient-name mb-4">Mehedi Hasan</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Hospital</span> <span
+                            class="font-medium">Rajshahi Medical College</span></p>
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Contact</span> <span
+                            class="font-mono font-bold">+880 1515-223344</span></p>
+                    <div class="md:col-span-2">
+                        <span class="deadline-normal text-xs">Need by: 28 March, 9:00 AM</span>
+                    </div>
+                </div>
+            </div>
+            <div class="group-circle">
+                <span class="text-4xl font-bold text-[#8E4444]">AB+</span>
+            </div>
+        </div>
+
+        <div
+            class="donor-card bg-white border border-[#E8E2D9] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm rounded-xl">
+            <div class="flex-1">
+                <h4 class="text-3xl patient-name mb-4">Nusrat Jahan</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Hospital</span> <span
+                            class="font-medium">Khulna City Hospital</span></p>
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Contact</span> <span
+                            class="font-mono font-bold">+880 1313-556677</span></p>
+                    <div class="md:col-span-2">
+                        <span class="deadline-normal text-xs">Need by: Tomorrow, 11:30 AM</span>
+                    </div>
+                </div>
+            </div>
+            <div class="group-circle">
+                <span class="text-4xl font-bold text-[#8E4444]">O+</span>
+            </div>
+        </div>
+
+        <div
+            class="donor-card bg-white border border-[#E8E2D9] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm rounded-xl">
+            <div class="flex-1">
+                <h4 class="text-3xl patient-name mb-4">Kamrul Hasan</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Hospital</span> <span
+                            class="font-medium">Sher-e-Bangla Medical</span></p>
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Contact</span> <span
+                            class="font-mono font-bold">+880 1717-889900</span></p>
+                    <div class="md:col-span-2">
+                        <span class="deadline-normal text-xs">Need by: 30 March, Morning</span>
+                    </div>
+                </div>
+            </div>
+            <div class="group-circle">
+                <span class="text-4xl font-bold text-[#8E4444]">B-</span>
+            </div>
+        </div>
+
+        <div
+            class="donor-card bg-white border border-[#E8E2D9] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm rounded-xl">
+            <div class="flex-1">
+                <h4 class="text-3xl patient-name mb-4">Ayesha Siddiqua</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Hospital</span> <span
+                            class="font-medium">Rangpur Medical College</span></p>
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Contact</span> <span
+                            class="font-mono font-bold">+880 1616-112244</span></p>
+                    <div class="md:col-span-2">
+                        <span class="deadline-normal text-xs">Need by: 24 March, 12:00 PM</span>
+                    </div>
+                </div>
+            </div>
+            <div class="group-circle">
+                <span class="text-4xl font-bold text-[#8E4444]">A+</span>
+            </div>
+        </div>
+
+        <div
+            class="donor-card bg-white border border-[#E8E2D9] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm rounded-xl">
+            <div class="flex-1">
+                <h4 class="text-3xl patient-name mb-4">Rafiqul Islam</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Hospital</span> <span
+                            class="font-medium">Mymensingh Medical</span></p>
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Contact</span> <span
+                            class="font-mono font-bold">+880 1414-334455</span></p>
+                    <div class="md:col-span-2">
+                        <span class="deadline-normal text-xs">Need by: 01 April, 10:00 AM</span>
+                    </div>
+                </div>
+            </div>
+            <div class="group-circle">
+                <span class="text-4xl font-bold text-[#8E4444]">AB-</span>
+            </div>
+        </div>
+
+        <div
+            class="donor-card bg-white border border-[#E8E2D9] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm rounded-xl">
+            <div class="flex-1">
+                <h4 class="text-3xl patient-name mb-4">Fahim Muntassir</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Hospital</span> <span
+                            class="font-medium">Cumilla Central Hospital</span></p>
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Contact</span> <span
+                            class="font-mono font-bold">+880 1818-667788</span></p>
+                    <div class="md:col-span-2">
+                        <span class="deadline-normal text-xs">Need by: 29 March, 11:00 AM</span>
+                    </div>
+                </div>
+            </div>
+            <div class="group-circle">
+                <span class="text-4xl font-bold text-[#8E4444]">O+</span>
+            </div>
+        </div>
+
+        <div
+            class="donor-card bg-white border border-[#E8E2D9] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm rounded-xl">
+            <div class="flex-1">
+                <h4 class="text-3xl patient-name mb-4">Tasnim Ara</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Hospital</span> <span
+                            class="font-medium">Sheikh Fazilatunnessa Memorial</span></p>
+                    <p><span class="opacity-50 uppercase text-[10px] font-bold block">Contact</span> <span
+                            class="font-mono font-bold">+880 1712-445892</span></p>
+                    <div class="md:col-span-2">
+                        <span class="deadline-normal text-xs">Need by: Tomorrow, 2:00 PM</span>
+                    </div>
+                </div>
+            </div>
+            <div class="group-circle">
+                <span class="text-4xl font-bold text-[#8E4444]">B+</span>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        fetch('navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-placeholder').innerHTML = data;
+            });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeLine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="assets/home.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <div id="navbar-placeholder" class="sticky top-0 z-50"></div>
+
+    <main>
+        <!-- HERO SECTION -->
+        <section class="relative min-h-screen w-full overflow-hidden flex items-center">
+            
+            <img src="resources/Hero-bg.svg" alt="Blood Donation Background"
+                class="absolute inset-0 z-0 w-full h-full object-cover">
+
+            <div class="blur-overlay-gradual z-10"></div>
+
+            <div class="relative z-20 max-w-7xl mx-auto px-8 w-full">
+                <div class="text-left max-w-2xl">
+                    <h1 class="text-4xl md:text-6xl font-serif text-[#F9F7F2] mb-4 leading-tight">
+                        Donate Blood.
+                    </h1>
+
+                    <h2 class="text-5xl md:text-7xl mb-8">
+                        <span class="text-rose-italic text-rose-light">Save a Life Today.</span>
+                    </h2>
+
+                    <p class="text-[#F9F7F2]/90 text-xl font-light tracking-wide mb-10">
+                        Connecting donors and patients in Dhaka with real-time tracking and emergency alerts.
+                    </p>
+
+                    <div class="flex flex-row gap-4">
+                        <a href="request.html">
+                            <button class="btn-premium px-10 py-4 text-xs font-bold tracking-[0.2em] bg-[#8E4444]">
+                            REQUEST BLOOD
+                        </button>
+                        </a>
+                        <a href="learn_more.html">
+                            <button
+                            class="px-10 py-4 text-xs font-bold tracking-[0.2em] border border-[#F9F7F2] text-[#F9F7F2] hover:bg-[#F9F7F2] hover:text-[#3D2B2B] transition-all">
+                            LEARN MORE
+                        </button>
+                        </a>
+                    </div>
+                    <!-- quick search bar -->
+                    <div
+                        class="mt-12 p-4 md:p-6 bg-[#F9F7F2]/10 backdrop-blur-md border border-[#F9F7F2]/20 inline-block w-full max-w-lg rounded-sm">
+                        <p class="text-[#F9F7F2] text-[10px] uppercase tracking-[0.3em] font-bold mb-4 opacity-80">
+                            Quick Donor Search
+                        </p>
+
+                        <div class="flex flex-col sm:flex-row gap-1">
+                            <select
+                                class="bg-[#F9F7F2] text-[#3D2B2B] px-4 py-3 text-xs font-bold tracking-widest uppercase outline-none w-full sm:w-1/2 rounded-none border-r border-[#E8E2D9]">
+                                <option value="" disabled selected>Select Blood Group</option>
+                                <option value="A+">A Positive (A+)</option>
+                                <option value="A-">A Negative (A-)</option>
+                                <option value="B+">B Positive (B+)</option>
+                                <option value="B-">B Negative (B-)</option>
+                                <option value="O+">O Positive (O+)</option>
+                                <option value="O-">O Negative (O-)</option>
+                                <option value="AB+">AB Positive (AB+)</option>
+                                <option value="AB-">AB Negative (AB-)</option>
+                            </select>
+
+                            <button
+                                class="bg-[#8E4444] text-[#F9F7F2] px-6 py-3 text-xs font-bold tracking-[0.2em] uppercase hover:bg-[#3D2B2B] transition-colors w-full sm:w-1/2">
+                                Find Donors
+                            </button>
+                        </div>
+
+                        <p class="text-[#F9F7F2]/60 text-[9px] mt-3 italic">
+                            *Showing 1,248 active donors in Dhaka region
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div
+                class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center text-[#8E4444] animate-bounce">
+                <span class="text-s tracking-[0.3em]">SCROLL</span>
+                <span class="text-lg">↓</span>
+            </div>
+            <div class="hero-fade"></div>
+        </section>
+
+        <!-- EMERGENCY CARDS -->
+        <section class="py-20 bg-[#F9F7F2]">
+            <div class="max-w-7xl mx-auto px-8">
+
+                <div class="flex justify-between items-end mb-12 border-b border-[#3D2B2B]/10 pb-6">
+                    <div>
+                        <h2 class="live-alert text-xs font-bold tracking-[0.4em] uppercase mb-2">
+                            ● LIVE ALERTS
+                        </h2>
+                        <h3 class="text-4xl font-serif text-[#3D2B2B]">Emergency Requests</h3>
+                    </div>
+                    <a href="emergency_blood_list.html"
+                        class="text-[#8E4444] text-xs font-bold tracking-widest uppercase hover:tracking-[0.2em] transition-all">View
+                        All Cases →</a>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+                    <div
+                        class="request-card urgent-card bg-white border border-[#E8E2D9] p-8 hover:shadow-xl transition-shadow relative overflow-hidden group">
+                        <div
+                            class="urgent-badge absolute top-0 right-0 bg-red-600 text-white text-[10px] px-4 py-1 uppercase tracking-tighter">
+                            Urgent
+                        </div>
+                        <div class="flex items-center gap-4 mb-6">
+                            <div
+                                class="w-12 h-12 rounded-full bg-[#8E4444]/10 flex items-center justify-center text-[#8E4444] font-bold text-xl">
+                                O+</div>
+                            <div>
+                                <h4 class="text-[#3D2B2B] font-bold text-sm uppercase tracking-wide">Dhaka Medical
+                                    College</h4>
+                                <p class="text-[#3D2B2B]/50 text-[10px] uppercase">Posted 5 mins ago</p>
+                            </div>
+                        </div>
+                        <p class="text-[#3D2B2B]/80 text-sm leading-relaxed mb-6">Patient requiring immediate surgery
+                            after road accident. Need 2 bags of O+ blood by 4:00 PM today.</p>
+                        <div class="flex justify-between items-center border-t border-[#E8E2D9] pt-6">
+                            <span class="text-[10px] font-bold tracking-widest text-[#3D2B2B]/40">#REQ-2026-04</span>
+                            <button
+                                class="text-[#8E4444] text-xs font-bold uppercase tracking-widest group-hover:underline">Contact
+                                Info</button>
+                        </div>
+                    </div>
+
+                    <div
+                        class="request-card bg-white border border-[#E8E2D9] p-8 hover:shadow-xl transition-shadow relative overflow-hidden group">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div
+                                class="w-12 h-12 rounded-full bg-[#8E4444]/10 flex items-center justify-center text-[#8E4444] font-bold text-xl">
+                                A-</div>
+                            <div>
+                                <h4 class="text-[#3D2B2B] font-bold text-sm uppercase tracking-wide">Square Hospital
+                                </h4>
+                                <p class="text-[#3D2B2B]/50 text-[10px] uppercase">Posted 20 mins ago</p>
+                            </div>
+                        </div>
+                        <p class="text-[#3D2B2B]/80 text-sm leading-relaxed mb-6">Thalassemia patient needs regular
+                            transfusion. Requesting a donor who is nearby in Panthapath/Dhanmondi.</p>
+                        <div class="flex justify-between items-center border-t border-[#E8E2D9] pt-6">
+                            <span class="text-[10px] font-bold tracking-widest text-[#3D2B2B]/40">#REQ-2026-03</span>
+                            <button
+                                class="text-[#8E4444] text-xs font-bold uppercase tracking-widest group-hover:underline">Contact
+                                Info</button>
+                        </div>
+                    </div>
+
+                    <div
+                        class="request-card bg-white border border-[#E8E2D9] p-8 hover:shadow-xl transition-shadow relative overflow-hidden group">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div
+                                class="w-12 h-12 rounded-full bg-[#8E4444]/10 flex items-center justify-center text-[#8E4444] font-bold text-xl">
+                                B+</div>
+                            <div>
+                                <h4 class="text-[#3D2B2B] font-bold text-sm uppercase tracking-wide">Evercare Hospital
+                                </h4>
+                                <p class="text-[#3D2B2B]/50 text-[10px] uppercase">Posted 1 hour ago</p>
+                            </div>
+                        </div>
+                        <p class="text-[#3D2B2B]/80 text-sm leading-relaxed mb-6">Replacement donor needed for an
+                            upcoming surgery scheduled for tomorrow morning. Donor must be healthy.</p>
+                        <div class="flex justify-between items-center border-t border-[#E8E2D9] pt-6">
+                            <span class="text-[10px] font-bold tracking-widest text-[#3D2B2B]/40">#REQ-2026-02</span>
+                            <button
+                                class="text-[#8E4444] text-xs font-bold uppercase tracking-widest group-hover:underline">Contact
+                                Info</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- DONOR CARDS -->
+        <section class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-8">
+                <div class="flex justify-between items-end mb-12 border-b border-[#3D2B2B]/10 pb-6">
+                    <div>
+                        <h2 class="text-xs font-bold tracking-[0.4em] text-[#31a354] uppercase mb-2">
+                            Our Lifesavers
+                        </h2>
+                        <h3 class="text-4xl font-serif text-[#3D2B2B]">Top Donors</h3>
+                    </div>
+                    <a href="donor_list.html"
+                        class="text-[#3D2B2B]/60 text-xs font-bold tracking-widest uppercase hover:text-[#31a354] transition-all">
+                        See All Donors →
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
+                    <div
+                        class="donor-card group text-center p-8 border border-[#E8E2D9] bg-[#F9F7F2]/30 hover:bg-white transition-all duration-300 relative">
+                        <div
+                            class="absolute top-4 left-4 w-10 h-10 rounded-full border border-[#8E4444]/20 flex items-center justify-center text-[#8E4444] font-bold text-xs bg-white shadow-sm">
+                            AB+
+                        </div>
+
+                        <div class="mb-6 relative inline-block">
+                            <div class="w-24 h-24 rounded-full border-2 border-[#E5E4E2] p-1 mx-auto overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&h=200&auto=format&fit=crop"
+                                    alt="Donor" class="w-full h-full rounded-full object-cover bg-slate-100">
+                            </div>
+                            <div
+                                class="absolute -bottom-2 right-0 bg-[#E5E4E2] text-[#3D2B2B] text-[8px] font-black px-2 py-1 rounded shadow-sm uppercase tracking-widest border border-white">
+                                Platinum
+                            </div>
+                        </div>
+
+                        <h4 class="text-[#3D2B2B] font-bold text-lg mb-1">Ariffin Siddique</h4>
+                        <p class="text-[#31a354] text-[10px] font-bold uppercase tracking-widest mb-4">20+ Donations</p>
+
+                        <button
+                            class="w-full py-3 border border-[#3D2B2B] text-[#3D2B2B] text-[10px] font-bold uppercase tracking-[0.2em] group-hover:bg-[#045b1f] group-hover:text-white transition-colors">
+                            View Profile
+                        </button>
+                    </div>
+
+                    <div
+                        class="donor-card group text-center p-8 border border-[#E8E2D9] bg-[#F9F7F2]/30 hover:bg-white transition-all duration-300 relative">
+                        <div
+                            class="absolute top-4 left-4 w-10 h-10 rounded-full border border-[#8E4444]/20 flex items-center justify-center text-[#8E4444] font-bold text-xs bg-white shadow-sm">
+                            O-
+                        </div>
+
+                        <div class="mb-6 relative inline-block">
+                            <div class="w-24 h-24 rounded-full border-2 border-[#D4AF37] p-1 mx-auto overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&h=200&auto=format&fit=crop"
+                                    alt="Donor" class="w-full h-full rounded-full object-cover bg-slate-100">
+                            </div>
+                            <div
+                                class="absolute -bottom-2 right-0 bg-[#D4AF37] text-white text-[8px] font-black px-2 py-1 rounded shadow-sm uppercase tracking-widest border border-white">
+                                Gold
+                            </div>
+                        </div>
+
+                        <h4 class="text-[#3D2B2B] font-bold text-lg mb-1">Nusrat Jahan</h4>
+                        <p class="text-[#31a354] text-[10px] font-bold uppercase tracking-widest mb-4">15 Donations</p>
+
+                        <button
+                            class="w-full py-3 border border-[#3D2B2B] text-[#3D2B2B] text-[10px] font-bold uppercase tracking-[0.2em] group-hover:bg-[#045b1f] group-hover:text-white transition-colors">
+                            View Profile
+                        </button>
+                    </div>
+
+                    <div
+                        class="donor-card group text-center p-8 border border-[#E8E2D9] bg-[#F9F7F2]/30 hover:bg-white transition-all duration-300 relative">
+                        <div
+                            class="absolute top-4 left-4 w-10 h-10 rounded-full border border-[#8E4444]/20 flex items-center justify-center text-[#8E4444] font-bold text-xs bg-white shadow-sm">
+                            B+
+                        </div>
+
+                        <div class="mb-6 relative inline-block">
+                            <div class="w-24 h-24 rounded-full border-2 border-[#C0C0C0] p-1 mx-auto overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&h=200&auto=format&fit=crop"
+                                    alt="Donor" class="w-full h-full rounded-full object-cover bg-slate-100">
+                            </div>
+                            <div
+                                class="absolute -bottom-2 right-0 bg-[#C0C0C0] text-white text-[8px] font-black px-2 py-1 rounded shadow-sm uppercase tracking-widest border border-white">
+                                Silver
+                            </div>
+                        </div>
+
+                        <h4 class="text-[#3D2B2B] font-bold text-lg mb-1">Zayan Malik</h4>
+                        <p class="text-[#31a354] text-[10px] font-bold uppercase tracking-widest mb-4">10 Donations</p>
+
+                        <button
+                            class="w-full py-3 border border-[#3D2B2B] text-[#3D2B2B] text-[10px] font-bold uppercase tracking-[0.2em] group-hover:bg-[#045b1f] group-hover:text-white transition-colors">
+                            View Profile
+                        </button>
+                    </div>
+
+                    <div
+                        class="donor-card group text-center p-8 border border-[#E8E2D9] bg-[#F9F7F2]/30 hover:bg-white transition-all duration-300 relative">
+                        <div
+                            class="absolute top-4 left-4 w-10 h-10 rounded-full border border-[#8E4444]/20 flex items-center justify-center text-[#8E4444] font-bold text-xs bg-white shadow-sm">
+                            A+
+                        </div>
+
+                        <div class="mb-6 relative inline-block">
+                            <div class="w-24 h-24 rounded-full border-2 border-[#CD7F32] p-1 mx-auto overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&h=200&auto=format&fit=crop"
+                                    alt="Donor" class="w-full h-full rounded-full object-cover bg-slate-100">
+                            </div>
+                            <div
+                                class="absolute -bottom-2 right-0 bg-[#CD7F32] text-white text-[8px] font-black px-2 py-1 rounded shadow-sm uppercase tracking-widest border border-white">
+                                Bronze
+                            </div>
+                        </div>
+
+                        <h4 class="text-[#3D2B2B] font-bold text-lg mb-1">Sabbir Hossain</h4>
+                        <p class="text-[#31a354] text-[10px] font-bold uppercase tracking-widest mb-4">5 Donations</p>
+
+                        <button
+                            class="w-full py-3 border border-[#3D2B2B] text-[#3D2B2B] text-[10px] font-bold uppercase tracking-[0.2em] group-hover:bg-[#045b1f] group-hover:text-white transition-colors">
+                            View Profile
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- LIVE STATISTICS BOARD -->
+        <section class="py-16 bg-[#ade1e5] text-[#545454]">
+            <div class="max-w-7xl mx-auto px-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+
+                    <!-- Registered Donors -->
+                    <div class="relative">
+                        <span class="stat-number block text-5xl font-serif mb-2 tabular-nums"
+                            data-target="2840">0</span>
+                        <span class="text-[10px] font-bold tracking-[0.3em] uppercase opacity-60">
+                            Registered Donors
+                        </span>
+                        <div class="hidden md:block absolute right-0 top-1/4 h-1/2 w-px bg-[#F9F7F2]/10"></div>
+                    </div>
+
+                    <!-- Active Requests -->
+                    <div class="relative">
+                        <span class="stat-number block text-5xl font-serif mb-2 tabular-nums" data-target="142">0</span>
+                        <span class="text-[10px] font-bold tracking-[0.3em] uppercase opacity-60">
+                            Active Requests
+                        </span>
+                        <div class="hidden md:block absolute right-0 top-1/4 h-1/2 w-px bg-[#F9F7F2]/10"></div>
+                    </div>
+
+                    <!-- Successful Transfers -->
+                    <div>
+                        <span class="stat-number block text-5xl font-serif mb-2 tabular-nums"
+                            data-target="11205">0</span>
+                        <span class="text-[10px] font-bold tracking-[0.3em] uppercase opacity-60">
+                            Successful Transfers
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+<!-- learn more section -->
+        <section class="py-24 ">
+            <div class="max-w-7xl mx-auto px-8">
+
+                <div class="text-center mb-20">
+                    <h2 class="text-xs font-bold tracking-[0.4em] text-[#31a354] uppercase mb-4">
+                        The Process
+                    </h2>
+
+                    <h3 class="text-5xl font-serif text-[#3D2B2B]">
+                        How It Works
+                    </h3>
+
+                    <p class="mt-4 text-[#3D2B2B]/60 max-w-xl mx-auto text-sm">
+                        Saving a life is simpler than you think. We’ve streamlined the journey
+                        from registration to the final drop.
+                    </p>
+                </div>
+
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-16 relative">
+
+                    <!-- Step 1 -->
+                    <div class="relative group process-step">
+                        <div class="flex flex-col items-center">
+
+                            <div
+                                class="w-20 h-20 bg-white border border-[#E8E2D9] rounded-full flex items-center justify-center mb-8 group-hover:border-[#31a354] transition-colors duration-500 shadow-sm relative z-10">
+                                <span class="text-2xl font-serif text-[#3D2B2B]">01</span>
+                            </div>
+
+                            <h4 class="text-[#3D2B2B] font-bold uppercase tracking-widest text-sm mb-4">
+                                Register
+                            </h4>
+
+                            <p class="text-[#3D2B2B]/60 text-sm text-center leading-relaxed">
+                                Create your profile with your blood group and location.
+                                Your data is encrypted and secure.
+                            </p>
+                        </div>
+
+                        <!-- connector -->
+                        <div class="hidden md:block absolute top-10 left-[60%] w-[80%] h-[1px] bg-[#3D2B2B]/10 -z-0">
+                        </div>
+                    </div>
+
+
+                    <!-- Step 2 -->
+                    <div class="relative group process-step">
+                        <div class="flex flex-col items-center">
+
+                            <div
+                                class="w-20 h-20 bg-white border border-[#E8E2D9] rounded-full flex items-center justify-center mb-8 group-hover:border-[#31a354] transition-colors duration-500 shadow-sm relative z-10">
+                                <span class="text-2xl font-serif text-[#3D2B2B]">02</span>
+                            </div>
+
+                            <h4 class="text-[#3D2B2B] font-bold uppercase tracking-widest text-sm mb-4">
+                                Connect
+                            </h4>
+
+                            <p class="text-[#3D2B2B]/60 text-sm text-center leading-relaxed">
+                                Receive real-time alerts when someone nearby needs your
+                                specific blood type.
+                            </p>
+                        </div>
+
+                        <!-- connector -->
+                        <div class="hidden md:block absolute top-10 left-[60%] w-[80%] h-[1px] bg-[#3D2B2B]/10 -z-0">
+                        </div>
+                    </div>
+
+
+                    <!-- Step 3 -->
+                    <div class="relative group process-step">
+                        <div class="flex flex-col items-center">
+
+                            <div
+                                class="w-20 h-20 bg-[#31a354] border border-[#31a354] rounded-full flex items-center justify-center mb-8 shadow-[0_8px_20px_rgba(49,163,84,0.25)] relative z-10">
+                                <span class="text-2xl font-serif text-white">03</span>
+                            </div>
+
+                            <h4 class="text-[#3D2B2B] font-bold uppercase tracking-widest text-sm mb-4">
+                                Save Life
+                            </h4>
+
+                            <p class="text-[#3D2B2B]/60 text-sm text-center leading-relaxed">
+                                Head to the hospital, donate, and complete the transaction
+                                through our verified system.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CTA -->
+                <div class="mt-20 text-center">
+                    <a href="learn_more.html">
+                        <button
+                        class="px-12 py-4 bg-transparent border border-[#31a354] text-[#31a354] text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-[#31a354] hover:text-white transition-all duration-300">
+                        Learn More
+                    </button>
+                    </a>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+
+    <footer class="bg-[#3D2B2B] text-[#F9F7F2]/80 py-20 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+
+                <div class="col-span-1 md:col-span-1">
+                    <h2 class="text-white font-serif text-2xl mb-6">LifeLine</h2>
+                    <p class="text-sm leading-relaxed mb-6 opacity-60">
+                        Connecting heroes with those in need. A transparent, fast, and reliable platform for life-saving
+                        blood donations.
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="#"
+                            class="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#8E4444] hover:border-[#8E4444] transition-all">fb</a>
+                        <a href="#"
+                            class="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#8E4444] hover:border-[#8E4444] transition-all">ig</a>
+                        <a href="#"
+                            class="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#8E4444] hover:border-[#8E4444] transition-all">tw</a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-white text-[10px] font-bold uppercase tracking-[0.3em] mb-8">Navigation</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="#" class="hover:text-[#8E4444] transition-colors">Find Donors</a></li>
+                        <li><a href="#" class="hover:text-[#8E4444] transition-colors">Emergency Requests</a></li>
+                        <li><a href="#" class="hover:text-[#8E4444] transition-colors">How it Works</a></li>
+                        <li><a href="#" class="hover:text-[#8E4444] transition-colors">Leaderboard</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white text-[10px] font-bold uppercase tracking-[0.3em] mb-8">Support</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="#" class="hover:text-[#8E4444] transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-[#8E4444] transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="hover:text-[#8E4444] transition-colors">Help Center</a></li>
+                        <li><a href="#" class="hover:text-[#8E4444] transition-colors">Contact Us</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white text-[10px] font-bold uppercase tracking-[0.3em] mb-8">Newsletter</h4>
+                    <p class="text-xs mb-4 opacity-60">Get live alerts for emergency cases in your area.</p>
+                    <form class="relative">
+                        <input type="email" placeholder="Email Address"
+                            class="w-full bg-white/5 border border-white/10 py-3 px-4 text-sm focus:outline-none focus:border-[#8E4444] transition-colors">
+                        <button
+                            class="absolute right-2 top-1/2 -translate-y-1/2 text-[#8E4444] text-xs font-bold uppercase hover:tracking-widest transition-all">Join</button>
+                    </form>
+                </div>
+
+            </div>
+
+            <div
+                class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+
+                <p class="text-[10px] uppercase tracking-widest opacity-40">
+                    &copy; 2026 LifeLine. All rights reserved.
+                </p>
+
+                <div class="text-left md:text-right">
+                    <h4 class="text-[#31a354] text-[10px] font-bold uppercase tracking-[0.3em] mb-4">Emergency Contact
+                    </h4>
+                    <p class="text-sm mb-2 text-[#F9F7F2]/60">Hotline: <span
+                            class="font-bold text-[#F9F7F2] tracking-wider">+880 1234 567890</span></p>
+                    <p class="text-sm mb-2 text-[#F9F7F2]/60">Email: <span
+                            class="font-bold text-[#F9F7F2]">support@lifeline.com</span></p>
+                    <p class="text-xs text-[#F9F7F2]/40 italic">123 Green Street, Dhaka, Bangladesh</p>
+                </div>
+
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT FILE  -->
+    <script src="home.js"></script>
+    
+</body>
+
+</html>

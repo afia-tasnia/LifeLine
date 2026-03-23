@@ -1,0 +1,136 @@
+:root {
+        --blood-red: #AF4444;
+        --emergency-glow: rgba(175, 68, 68, 0.15);
+        --vintage-cream: #F9F7F2;
+        --deep-cocoa: #3D2B2B;
+    }
+
+
+
+    /* Emergency Filter Button Styling */
+.btn-emergency-filter {
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border: 1px solid #E8E2D9;
+    background-color: white;
+    color: var(--deep-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-emergency-filter:hover {
+    border-color: var(--blood-red);
+    color: var(--blood-red);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(175, 68, 68, 0.1);
+}
+
+/* Style for when the filter is active */
+.btn-emergency-filter.active {
+    background-color: var(--blood-red);
+    border-color: var(--blood-red);
+    color: white !important;
+}
+
+.btn-emergency-filter .dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--blood-red);
+    border-radius: 50%;
+}
+
+.btn-emergency-filter.active .dot {
+    background-color: white;
+    animation: pulse-dot 1.5s infinite;
+}
+
+@keyframes pulse-dot {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+
+    /* Custom Dropdown Styling */
+.filter-select {
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    appearance: none; /* Removes default browser arrow for a cleaner look */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%238E4444'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+}
+
+.filter-select:hover {
+    border-color: #8E4444; /* Your vintage rose color */
+    box-shadow: 0 10px 20px rgba(142, 68, 68, 0.1);
+    transform: translateY(-1px);
+}
+
+
+.filter-select:focus {
+    border-color: #8E4444;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(142, 68, 68, 0.2); 
+}
+
+    /* Elegant Patient Name - Matches LifeLink Branding */
+    .patient-name {
+        color: var(--deep-cocoa);
+    }
+
+    /* The "Need By" date box */
+    .deadline-highlight {
+        display: inline-block;
+        padding: 4px 12px;
+        background-color: #FFF5F5;
+        border: 1px dashed #EF4444;
+        border-radius: 6px;
+        font-weight: 600;
+        color: #B91C1C;
+    }
+
+    .deadline-normal {
+        display: inline-block;
+        padding: 4px 12px;
+        background-color: #F3E5D0;
+        border-radius: 6px;
+        font-weight: 600;
+        color: var(--blood-red);
+    }
+
+    /* Special Emergency Card Styling */
+    .card-emergency {
+        border-left: 8px solid var(--blood-red) !important;
+        background: linear-gradient(to right, #FFF8F8, #FFFFFF);
+    }
+
+    /* Heartbeat Pulse for Emergency */
+    @keyframes heartbeat {
+        0% { box-shadow: 0 0 0 0 var(--emergency-glow); }
+        70% { box-shadow: 0 0 0 15px rgba(175, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(175, 68, 68, 0); }
+    }
+    .emergency-pulse {
+        animation: heartbeat 2s infinite;
+    }
+
+    /* Round Blood Group Circle */
+    .group-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 1px solid #E8E2D9;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--vintage-cream);
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    .donor-card:hover .group-circle {
+        transform: scale(1.1) rotate(5deg);
+        border-color: var(--blood-red);
+        background-color: white;
+    }

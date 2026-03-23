@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Blood</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen text-[#3D2B2B] font-sans selection:bg-[#f3a4a3] relative">
+
+    <div class="absolute inset-0 z-0 h-full w-full" style="background: linear-gradient(to bottom, #F9F7F2, #f3a4a3);">
+        <div class="absolute bottom-0 left-0 w-full h-[60vh] bg-cover bg-bottom opacity-80" 
+             style="background-image: url('resources/request.svg'); mask-image: linear-gradient(to top, black 40%, transparent 100%); -webkit-mask-image: linear-gradient(to top, black 40%, transparent 100%);">
+        </div>
+    </div>
+
+    <div id="navbar-placeholder" class="sticky top-0 z-50"></div>
+    <main class="relative z-10 flex flex-col items-center px-6 pt-10 pb-32">
+        
+        <header class="text-center max-w-xl mb-16">
+            <h1 class="text-4xl md:text-6xl font-serif mb-6 leading-tight">Request <br>Support.</h1>
+            <p class="text-sm opacity-70 leading-relaxed max-w-sm mx-auto">Fill in the details below. We will notify donors in your immediate area.</p>
+        </header>
+
+        <form action="#" class="w-full max-w-xl space-y-10">
+            
+            <div class="grid grid-cols-1 gap-10">
+                <div class="relative">
+                    <label class="block text-[10px] uppercase tracking-[0.3em] font-black mb-3 opacity-80">Patient Name</label>
+                    <input type="text" placeholder="Enter full name" 
+                           class="w-full bg-transparent border-b-2 border-[#3D2B2B]/10 focus:border-[#3D2B2B] outline-none py-3 text-lg transition-all placeholder:opacity-30">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-[0.3em] font-black mb-3 opacity-80">Blood Group</label>
+                        <select class="w-full bg-transparent border-b-2 border-[#3D2B2B]/10 focus:border-[#3D2B2B] outline-none py-3 text-lg cursor-pointer appearance-none">
+                            <option>A+</option><option>A-</option>
+                            <option>B+</option><option>B-</option>
+                            <option>O+</option><option>O-</option>
+                            <option>AB+</option><option>AB-</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-[0.3em] font-black mb-3 opacity-80">Urgency</label>
+                        <select class="w-full bg-transparent border-b-2 border-[#3D2B2B]/10 focus:border-[#3D2B2B] outline-none py-3 text-lg font-bold text-[#FF6B6B]">
+                            <option value="Normal">Normal</option>
+                            <option value="Emergency">EMERGENCY</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] uppercase tracking-[0.3em] font-black mb-3 opacity-80">Hospital / Location</label>
+                    <input type="text" placeholder="Hospital name and area" 
+                           class="w-full bg-transparent border-b-2 border-[#3D2B2B]/10 focus:border-[#3D2B2B] outline-none py-3 text-lg transition-all placeholder:opacity-30">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] uppercase tracking-[0.3em] font-black mb-3 opacity-80">Contact Number</label>
+                    <input type="tel" placeholder="+880 1..." 
+                           class="w-full bg-transparent border-b-2 border-[#3D2B2B]/10 focus:border-[#3D2B2B] outline-none py-3 text-lg transition-all font-mono">
+                </div>
+            </div>
+
+            <div class="pt-10 text-center">
+                <button type="submit" 
+                        class="group relative inline-flex items-center justify-center px-12 py-5 bg-[#3D2B2B] text-white text-[11px] font-bold uppercase tracking-[0.4em] hover:bg-[#FF6B6B] transition-all duration-500 shadow-2xl">
+                    Submit Request
+                </button>
+                <p class="mt-6 text-[9px] uppercase tracking-widest opacity-40 font-bold">Every second counts. We are here to help.</p>
+            </div>
+        </form>
+    </main>
+
+    <script>
+    fetch('navbar.html')
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('navbar-placeholder').innerHTML = data;
+        });
+</script>
+
+</body>
+</html>

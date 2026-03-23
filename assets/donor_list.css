@@ -1,0 +1,104 @@
+:root {
+    --vintage-rose: #8E4444;
+    --cream-bg: #F9F7F2;
+    --deep-text: #3D2B2B;
+    --gold-accent: #D4AF37;
+}
+
+.nav-logo-container {
+    display: flex;
+    align-items: center;
+    height: 2rem; /* Default for mobile */
+}
+
+@media (min-width: 768px) {
+    .nav-logo-container {
+        height: 2.5rem; /* Larger for desktop */
+    }
+}
+
+.nav-logo-container img {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+}
+
+.text-rose-italic {
+    color: var(--vintage-rose);
+    font-family: 'Pacifico', cursive;
+    font-weight: 400;
+    padding-left: 2px;
+    display: inline-block;
+}
+
+/* Underline Animation */
+.nav-link {
+    font-size: 12px;
+    position: relative;
+    color: var(--deep-text);
+    transition: color 0.3s ease;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 1px;
+    bottom: -2px;
+    left: 0;
+    background-color: var(--vintage-rose);
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+.nav-link:hover {
+    color: var(--vintage-rose);
+}
+
+/* Premium Button Glow */
+.btn-premium {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    background-color: var(--vintage-rose);
+    color: var(--cream-bg) !important;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    box-shadow: 0 4px 6px -1px rgba(142, 68, 68, 0.2);
+    border-radius: 10px;
+}
+
+.btn-premium:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 12px 25px rgba(142, 68, 68, 0.35);
+    filter: brightness(1.1);
+}
+
+
+
+
+/* Custom Card Hover Effect */
+.donor-card {
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.donor-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.04);
+}
+
+/* Badge Gradients */
+.badge-platinum { background: linear-gradient(135deg, #e5e4e2, #ffffff); color: #4a4a4a; }
+.badge-gold { background: linear-gradient(135deg, #d4af37, #f9f295); color: #5c441a; }
+.badge-silver { background: linear-gradient(135deg, #c0c0c0, #e8e8e8); color: #333; }
+.badge-bronze { background: linear-gradient(135deg, #cd7f32, #f5d1b0); color: #4d2600; }
+.badge-standard { background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }
+
+.donor-card { transition: all 0.3s ease; }
+.donor-card:hover { transform: translateY(-5px); box-shadow: 0 12px 24px -10px rgba(0,0,0,0.1); }
+
+/* Custom Form Input for the search */
+.search-input:focus {
+    border-color: #a7d7ec;
+    box-shadow: 0 0 0 4px rgba(167, 215, 236, 0.15);
+}

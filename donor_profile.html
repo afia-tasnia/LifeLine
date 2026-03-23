@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donor Profile</title>
+    <link rel="stylesheet" href="assets/donor_profile.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-[#F9F7F2] text-[#3D2B2B] min-h-screen">
+
+    <div id="navbar-placeholder" class="sticky top-0 z-50"></div>
+
+    <main class="max-w-4xl mx-auto mt-16 px-4 pb-20">
+        <div class="profile-card-glass rounded-2xl p-8 md:p-12 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-[#AF4444]/5 rounded-bl-full"></div>
+
+            <div class="flex flex-col md:flex-row items-center gap-8 relative z-10">
+                <div class="relative">
+                    <div class="profile-avatar rounded-full flex items-center justify-center text-4xl font-serif text-[#AF4444]">
+                        AI
+                    </div>
+                    <div class="absolute -bottom-2 -right-2 w-12 h-12 bg-[#AF4444] text-white rounded-full flex items-center justify-center font-bold border-4 border-white">
+                        O+
+                    </div>
+                </div>
+
+                <div class="flex-1 text-center md:text-left">
+                    <div class="flex flex-col md:flex-row md:items-center gap-3 mb-2">
+                        <h1 class="text-3xl font-serif">Ariful Islam</h1>
+                        <span class="badge-display badge-platinum inline-block">Platinum Member</span>
+                    </div>
+                    <p class="text-sm opacity-60 mb-6 italic">"Helping lives, one drop at a time."</p>
+                    
+                    <div class="flex flex-wrap justify-center md:justify-start gap-6 text-xs font-medium opacity-80">
+                        <p class="flex items-center gap-2">📍 Dhaka, Bangladesh</p>
+                        <p class="flex items-center gap-2">📞 +880 1712-445892</p>
+                        <p class="flex items-center gap-2">✉️ arif.islam@email.com</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 border-t border-[#F0EDE8] pt-10">
+                <div class="stats-box p-6 rounded-xl text-center">
+                    <span class="block text-3xl font-bold text-[#AF4444] mb-1">14</span>
+                    <span class="text-[10px] uppercase tracking-widest font-bold opacity-40">Total Donations</span>
+                </div>
+
+                <div class="stats-box p-6 rounded-xl text-center">
+                    <span class="block text-lg font-bold text-green-600 mb-1 flex items-center justify-center gap-2">
+                        <span class="w-2 h-2 bg-green-600 rounded-full"></span> Available
+                    </span>
+                    <span class="text-[10px] uppercase tracking-widest font-bold opacity-40">Current Status</span>
+                </div>
+
+                <div class="stats-box p-6 rounded-xl text-center">
+                    <span class="block text-lg font-bold mb-1">14 Oct 2025</span>
+                    <span class="text-[10px] uppercase tracking-widest font-bold opacity-40">Last Contribution</span>
+                </div>
+            </div>
+
+            <!-- <div class="mt-10 flex flex-col md:flex-row gap-4">
+                <a href="tel:+8801712445892" class="flex-1 text-center py-4 bg-[#3D2B2B] text-white text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-black transition-all">
+                    Call Donor Now
+                </a>
+                <button class="flex-1 text-center py-4 border border-[#E8E2D9] text-[#3D2B2B] text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-[#F9F7F2] transition-all">
+                    Send Message
+                </button>
+            </div> -->
+        </div>
+        
+        <div class="mt-8 text-center">
+            <a href="donor_list.html" class="text-xs font-bold uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity">
+                ← Back to Donor Directory
+            </a>
+        </div>
+    </main>
+
+    <script>
+        fetch('navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-placeholder').innerHTML = data;
+            });
+    </script>
+</body>
+</html>
