@@ -1,0 +1,76 @@
+/* --- 1. Fonts & Variables --- */
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+
+:root {
+    --vintage-rose: #8E4444;
+    --cream-bg: #F9F7F2;
+    --deep-text: #3D2B2B;
+    --gold-accent: #D4AF37;
+    --accent-red: #FF6B6B;
+}
+
+/* --- 2. Navbar Structure (From Home) --- */
+.nav-logo-container {
+    display: flex;
+    align-items: center;
+    height: 2rem;
+}
+
+@media (min-width: 768px) {
+    .nav-logo-container { height: 2.5rem; }
+}
+
+.nav-logo-container img {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+}
+
+/* The "Line" in LifeLine */
+.text-rose-italic {
+    color: var(--vintage-rose);
+    font-family: 'Pacifico', cursive;
+    font-weight: 400;
+    padding-left: 2px;
+    display: inline-block;
+}
+
+/* --- 3. Links & Animations --- */
+.nav-link {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    position: relative;
+    color: var(--deep-text);
+    transition: color 0.3s ease;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 1px;
+    bottom: -2px;
+    left: 0;
+    background-color: var(--vintage-rose);
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover::after { width: 100%; }
+.nav-link:hover { color: var(--vintage-rose); }
+
+/* --- 4. Premium Button (The "Donate Now" button) --- */
+.btn-premium {
+    background-color: var(--vintage-rose);
+    color: var(--cream-bg) !important;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    box-shadow: 0 4px 6px -1px rgba(142, 68, 68, 0.2);
+    border-radius: 10px;
+}
+
+.btn-premium:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 12px 25px rgba(142, 68, 68, 0.35);
+    filter: brightness(1.1);
+}

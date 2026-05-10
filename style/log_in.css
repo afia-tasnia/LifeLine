@@ -1,0 +1,88 @@
+:root {
+    --vintage-rose: #8E4444;
+    --cream-bg: #F9F7F2;
+    --deep-text: #3D2B2B;
+    --gold-accent: #D4AF37;
+}
+
+
+.text-rose-italic {
+    color: var(--vintage-rose);
+    font-family: 'Pacifico', cursive;
+    font-weight: 400;
+    padding-left: 2px;
+    display: inline-block;
+}
+
+
+
+
+/* Custom Font Fix for Tailwind */
+.font-serif {
+    font-family: 'Playfair Display', serif;
+}
+
+/* Minimalist Underline Inputs */
+.form-input {
+    background-color: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid #E8E2D9 !important;
+    border-radius: 0 !important;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.form-input:focus {
+    outline: none !important;
+    border-color: #8E4444 !important;
+    padding-left: 10px;
+    box-shadow: none !important;
+}
+
+/* Hero Donor Button - The Green Outline Style */
+.btn-hero-outline {
+    border: 1px solid #31a354;
+    color: #31a354;
+    background: transparent;
+    transition: all 0.4s ease;
+    text-decoration: none;
+}
+
+.btn-hero-outline:hover {
+    background-color: #31a354;
+    color: white !important;
+    box-shadow: 0 8px 20px rgba(49, 163, 84, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Custom Checkbox */
+.custom-checkbox {
+    width: 14px;
+    height: 14px;
+    border: 1px solid #E8E2D9;
+    appearance: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    background-color: transparent;
+    margin: 0;
+}
+
+.custom-checkbox:checked {
+    background-color: #3D2B2B;
+    border-color: #3D2B2B;
+}
+
+/* Entrance Animation */
+.form-container {
+    animation: slideUp 0.9s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
