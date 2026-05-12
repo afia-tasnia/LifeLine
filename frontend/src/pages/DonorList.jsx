@@ -1,127 +1,9 @@
-import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
-
-// ─────────────────────────────────────────────
-// Static donor data — replace with API call in Phase 3
-// GET /api/donors  →  swap DONORS array with response data
-// ─────────────────────────────────────────────
-const DONORS = [
-  { id: 1,  name: "Ariful Islam",     city: "Dhaka",      bloodGroup: "O+",  status: "Available", lastDonation: "14 Oct 2025", donations: 14, badge: "Platinum" },
-  { id: 2,  name: "Sarah Khan",       city: "Chittagong", bloodGroup: "A-",  status: "Away",      lastDonation: "02 Jan 2026", donations: 11, badge: "Gold"     },
-  { id: 3,  name: "Tanvir Ahmed",     city: "Sylhet",     bloodGroup: "B+",  status: "Available", lastDonation: "20 Dec 2025", donations: 7,  badge: "Silver"   },
-  { id: 4,  name: "Mehedi Hasan",     city: "Rajshahi",   bloodGroup: "AB+", status: "Available", lastDonation: "15 Feb 2026", donations: 3,  badge: "Bronze"   },
-  { id: 5,  name: "Nafisa Alam",      city: "Dhaka",      bloodGroup: "O-",  status: "Available", lastDonation: "10 Nov 2025", donations: 16, badge: "Platinum" },
-  { id: 6,  name: "Raihan Hossain",   city: "Khulna",     bloodGroup: "A+",  status: "Away",      lastDonation: "05 Mar 2026", donations: 9,  badge: "Silver"   },
-  { id: 7,  name: "Priya Das",        city: "Barisal",    bloodGroup: "B-",  status: "Available", lastDonation: "28 Jan 2026", donations: 12, badge: "Gold"     },
-  { id: 8,  name: "Fahim Muntassir",  city: "Cumilla",    bloodGroup: "O+",  status: "Available", lastDonation: "18 Feb 2026", donations: 2,  badge: "Bronze"   },
-  { id: 9,  name: "Tasnim Ara",       city: "Dhaka",      bloodGroup: "B+",  status: "Available", lastDonation: "01 Mar 2026", donations: 4,  badge: "Bronze"   },
-  { id: 10, name: "Imtiaz Ahmed",     city: "Chittagong", bloodGroup: "A-",  status: "Available", lastDonation: "New Donor",   donations: 0,  badge: "Verified" },
-  { id: 11, name: "Sultan Mahmud",    city: "Sylhet",     bloodGroup: "O-",  status: "Available", lastDonation: "10 Jan 2026", donations: 11, badge: "Gold"     },
-  { id: 12, name: "Zubayer Al-Mahmud",city: "Rajshahi",   bloodGroup: "AB+", status: "Available", lastDonation: "25 Oct 2025", donations: 18, badge: "Platinum" },
-  { id: 13, name: "Sumaiya Akter",    city: "Khulna",     bloodGroup: "B-",  status: "Available", lastDonation: "14 Feb 2026", donations: 3,  badge: "Bronze"   },
-  { id: 14, name: "Hasan Mahmud",     city: "Barisal",    bloodGroup: "A+",  status: "Away",      lastDonation: "02 Dec 2025", donations: 0,  badge: "Verified" },
-];
+import { useState, useEffect } from "react";
+import axios from "axios";
+import DonorCard from "../components/DonorCard.jsx";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
 const CITIES = ["Dhaka", "Chittagong", "Rajshahi", "Khulna", "Barisal", "Sylhet", "Rangpur", "Mymensingh", "Cumilla"];
-
-// Badge style map — mirrors your donor_list.css
-const BADGE_STYLES = {
-  Platinum: { background: "linear-gradient(135deg,#e5e4e2,#ffffff)", color: "#4a4a4a" },
-  Gold:     { background: "linear-gradient(135deg,#d4af37,#f9f295)", color: "#5c441a" },
-  Silver:   { background: "linear-gradient(135deg,#c0c0c0,#e8e8e8)", color: "#333"    },
-  Bronze:   { background: "linear-gradient(135deg,#cd7f32,#f5d1b0)", color: "#4d2600" },
-  Verified: { background: "#f3f4f6",                                  color: "#6b7280", border: "1px solid #e5e7eb" },
-};
-
-// Initials helper
-function initials(name) {
-  return name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
-}
-
-// Individual donor card
-function DonorCard({ donor }) {
-  const badge  = BADGE_STYLES[donor.badge] ?? BADGE_STYLES.Verified;
-  const avail  = donor.status === "Available";
-
-  return (
-    <div className="dl-card">
-      {/* Badge ribbon */}
-      <div className="dl-card-badge" style={badge}>{donor.badge}</div>
-
-      {/* Top row */}
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:20 }}>
-        <div>
-          <h4 style={{ fontFamily:"'Lora',serif", fontSize:"1.15rem", color:"#3D2B2B", margin:"0 0 4px" }}>
-            {donor.name}
-          </h4>
-          <p style={{ fontSize:10, opacity:.5, margin:0, letterSpacing:".05em" }}>📍 {donor.city}</p>
-        </div>
-        {/* Blood group circle */}
-        <div style={{
-          width:48, height:48, borderRadius:"50%",
-          background:"rgba(167,215,236,.15)",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          fontWeight:700, fontSize:13, color:"#3D2B2B", flexShrink:0
-        }}>
-          {donor.bloodGroup}
-        </div>
-      </div>
-
-      {/* Details */}
-      <div style={{ fontSize:12, display:"flex", flexDirection:"column", gap:8, marginBottom:24 }}>
-        <div style={{ display:"flex", justifyContent:"space-between" }}>
-          <span style={{ opacity:.6 }}>Status</span>
-          <span style={{
-            fontWeight:700,
-            color: donor.status === "Available" ? "#16a34a"
-                 : donor.status === "Away"      ? "#d97706"
-                 : "#dc2626"
-          }}>
-            {donor.status}
-          </span>
-        </div>
-        <div style={{ display:"flex", justifyContent:"space-between" }}>
-          <span style={{ opacity:.6 }}>Donations</span>
-          <span style={{ fontWeight:700 }}>{donor.donations}</span>
-        </div>
-        <div style={{ display:"flex", justifyContent:"space-between" }}>
-          <span style={{ opacity:.6 }}>Last Donation</span>
-          <span>{donor.lastDonation}</span>
-        </div>
-      </div>
-
-      {/* CTA */}
-      {avail ? (
-        <Link
-          to={`/donors/${donor.id}`}
-          style={{
-            display:"block", textAlign:"center",
-            padding:"12px 20px",
-            background:"#3D2B2B", color:"#fff",
-            fontSize:10, fontWeight:700, letterSpacing:".12em", textTransform:"uppercase",
-            textDecoration:"none", borderRadius:8,
-            transition:"background .2s, transform .15s",
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background="#000"; e.currentTarget.style.transform="translateY(-1px)"; }}
-          onMouseLeave={e => { e.currentTarget.style.background="#3D2B2B"; e.currentTarget.style.transform="translateY(0)"; }}
-        >
-          See Profile
-        </Link>
-      ) : (
-        <button disabled style={{
-          width:"100%", padding:"12px 20px",
-          background:"#F9F7F2", color:"#3D2B2B",
-          fontSize:10, fontWeight:700, letterSpacing:".12em", textTransform:"uppercase",
-          border:"1px solid #E8E2D9", borderRadius:8,
-          opacity:.45, cursor:"not-allowed",
-        }}>
-          Currently Away
-        </button>
-      )}
-    </div>
-  );
-}
 
 // ─────────────────────────────────────────────
 // Main page component
@@ -130,19 +12,33 @@ export default function DonorList() {
   const [search,      setSearch]      = useState("");
   const [bloodFilter, setBloodFilter] = useState("");
   const [cityFilter,  setCityFilter]  = useState("");
-
-  // Live filtering — no API call needed here, just client-side for static data
-  // In Phase 3: debounce search and hit GET /api/donors?bloodGroup=X&city=Y&name=Z
-  const filtered = useMemo(() => {
-    return DONORS.filter(d => {
-      const matchName  = d.name.toLowerCase().includes(search.toLowerCase());
-      const matchBlood = bloodFilter ? d.bloodGroup === bloodFilter : true;
-      const matchCity  = cityFilter  ? d.city        === cityFilter  : true;
-      return matchName && matchBlood && matchCity;
-    });
-  }, [search, bloodFilter, cityFilter]);
+  const [donors,      setDonors]      = useState([]);
+  const [loading,     setLoading]     = useState(false);
+  const [error,       setError]       = useState("");
 
   const hasFilters = search || bloodFilter || cityFilter;
+
+  useEffect(() => {
+    const fetchDonors = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const params = {};
+        if (bloodFilter) params.bloodGroup = bloodFilter;
+        if (cityFilter) params.location = cityFilter;
+        if (search) params.search = search;
+
+        const response = await axios.get("http://localhost:5000/api/donors", { params });
+        setDonors(response.data);
+      } catch (err) {
+        setError(err.response?.data?.message || "Unable to load donors.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDonors();
+  }, [bloodFilter, cityFilter, search]);
 
   return (
     <>
@@ -314,6 +210,7 @@ export default function DonorList() {
 
             {hasFilters && (
               <button
+                type="button"
                 className="dl-clear-btn"
                 onClick={() => { setSearch(""); setBloodFilter(""); setCityFilter(""); }}
               >
@@ -325,15 +222,27 @@ export default function DonorList() {
 
         {/* Result count */}
         <div className="dl-count">
-          {filtered.length} donor{filtered.length !== 1 ? "s" : ""} found
-          {hasFilters && " matching your filters"}
+          {loading ? "Loading donors..." : `${donors.length} donor${donors.length !== 1 ? "s" : ""} found`}
+          {hasFilters && !loading && " matching your filters"}
         </div>
 
         {/* Grid */}
         <main className="dl-grid">
-          {filtered.length > 0 ? (
-            filtered.map((donor, i) => (
-              <div key={donor.id} style={{ animationDelay: `${i * 45}ms` }}>
+          {loading ? (
+            <div className="dl-empty">
+              <div className="dl-empty-icon">⏳</div>
+              <h3>Loading donors…</h3>
+              <p>Please wait while we fetch the latest donor availability.</p>
+            </div>
+          ) : error ? (
+            <div className="dl-empty">
+              <div className="dl-empty-icon">⚠️</div>
+              <h3>Unable to load donors</h3>
+              <p>{error}</p>
+            </div>
+          ) : donors.length > 0 ? (
+            donors.map((donor, i) => (
+              <div key={donor._id} style={{ animationDelay: `${i * 45}ms` }}>
                 <DonorCard donor={donor} />
               </div>
             ))

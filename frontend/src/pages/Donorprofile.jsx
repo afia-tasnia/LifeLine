@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
+import axios from "axios";
 
 // Badge config
 const BADGE_CONFIG = {
@@ -16,41 +17,35 @@ function getBadge(count) {
   return "Bronze";
 }
 
-// ── Placeholder donor (replace with API fetch in Phase 3) ──────────────────
-const MOCK_DONOR = {
-  _id: "mock-001",
-  name: "Ariful Islam",
-  bloodGroup: "O+",
-  location: "Dhaka, Bangladesh",
-  phone: "+880 1712-445892",
-  email: "arif.islam@email.com",
-  availability: "available",
-  donationCount: 14,
-  lastDonation: "2025-10-14",
-  quote: "Helping lives, one drop at a time.",
-  avatarUrl: null,
-};
-
 export default function DonorProfile() {
   const { id } = useParams();
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [donor, setDonor] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileInputRef = useRef(null);
 
-  // ── Fetch donor (mocked until Phase 3 API is ready) ───────────────────────
+  // ── Fetch donor from backend ───────────────────────────────────────────────
   useEffect(() => {
-    const timer = setTimeout(() => {
-      // TODO: replace with → axios.get(`/api/donors/${id}`)
-      setDonor(MOCK_DONOR);
-      setAvatarPreview(MOCK_DONOR.avatarUrl);
-      setLoading(false);
-    }, 600);
-    return () => clearTimeout(timer);
+    const loadDonor = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await axios.get(`http://localhost:5000/api/donors/${id}`);
+        setDonor(response.data);
+        setAvatarPreview(response.data.avatarUrl || null);
+      } catch (err) {
+        setError(err.response?.data?.message || "Unable to load donor profile.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDonor();
   }, [id]);
 
   // ── Profile picture handlers ───────────────────────────────────────────────
@@ -101,6 +96,20 @@ export default function DonorProfile() {
         year: "numeric",
       })
     : "—";
+
+  if (error) {
+    return (
+      <div
+        style={bgStyle}
+        className="min-h-screen flex items-center justify-center"
+      >
+        <div className="text-white/70 text-sm uppercase tracking-widest text-center px-4">
+          <div className="text-3xl mb-4">⚠️</div>
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   // ── Loading skeleton ───────────────────────────────────────────────────────
   if (loading) {
