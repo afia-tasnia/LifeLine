@@ -487,7 +487,7 @@ function DonorForm({ onBack }) {
       <div className="su-right">
         <div className="su-right-header">
           <h3 className="su-heading">Donor Application</h3>
-          <span className="su-phase-badge donor-badge">Phase 01</span>
+          <span className="su-phase-badge donor-badge">Donor</span>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -637,7 +637,7 @@ function ReceiverForm({ onBack }) {
         <div className="su-divider" />
         <p className="su-footer-text">Are you here to save lives?</p>
         <a href="/signup" className="su-donor-link" onClick={e => { e.preventDefault(); onBack(); }}>
-          Register as a Donor Instead
+          Back to Role Selection
         </a>
       </div>
     </div>
