@@ -13,6 +13,7 @@ import DonorList from './pages/DonorList.jsx'
 import EmergencyBloodList from './pages/EmergencyBloodList.jsx'
 import LearnMore from './pages/Learnmore.jsx'
 import Reserve from './pages/Reserve.jsx'
+import { AuthProvider } from './context/AuthContext'
 
 // Pages that should NOT show the navbar
 const NO_NAVBAR = ['/login', '/signup', '/admin']
@@ -35,23 +36,23 @@ function Layout() {
 
         {/* ── Protected: Donor ── */}
         <Route path="/donor-dashboard" element={
-          <ProtectedRoute><DonorProfile /></ProtectedRoute>
+          <ProtectedRoute requiredRole="donor"><DonorProfile /></ProtectedRoute>
         } />
 
         {/* ── Protected: Receiver ── */}
         <Route path="/dashboard" element={
-          <ProtectedRoute><ReceiverProfile /></ProtectedRoute>
+          <ProtectedRoute requiredRole="receiver"><ReceiverProfile /></ProtectedRoute>
         } />
         <Route path="/receivers/:id" element={
-          <ProtectedRoute><ReceiverProfile /></ProtectedRoute>
+          <ProtectedRoute requiredRole="receiver"><ReceiverProfile /></ProtectedRoute>
         } />
         <Route path="/request" element={
-          <ProtectedRoute><Request /></ProtectedRoute>
+          <ProtectedRoute requiredRole="receiver"><Request /></ProtectedRoute>
         } />
 
         {/* ── Protected: Hospital Admin ── */}
         <Route path="/admin" element={
-          <ProtectedRoute adminOnly><HospitalAdmin /></ProtectedRoute>
+          <ProtectedRoute requiredRole="admin"><HospitalAdmin /></ProtectedRoute>
         } />
         <Route path="/emergency" element={<EmergencyBloodList />} />
         <Route path="/learn-more" element={<LearnMore />} />
@@ -63,8 +64,10 @@ function Layout() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Layout />
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Layout />
+      </BrowserRouter>
+    </AuthProvider>
   )
 }

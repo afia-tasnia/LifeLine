@@ -1,90 +1,21 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-
-/* ─── Mock data — replace with API in Phase 2 ────────────────────────────── */
-/* Phase 2: const res = await axios.get("/api/requests?status=emergency");    */
-const REQUESTS = [
-  {
-    id: "REQ-2026-01",
-    name: "Rahman Ali",
-    bloodGroup: "B+",
-    hospital: "Dhaka Medical College",
-    contact: "+880 1700-112233",
-    deadline: "Today, before 4:00 PM",
-    urgency: "Immediate",
-    postedMins: 5,
-    units: 2,
-  },
-  {
-    id: "REQ-2026-02",
-    name: "Ayesha Siddiqua",
-    bloodGroup: "O-",
-    hospital: "Rangpur Medical College",
-    contact: "+880 1616-112244",
-    deadline: "ASAP — Within 2 Hours",
-    urgency: "Critical",
-    postedMins: 12,
-    units: 1,
-  },
-  {
-    id: "REQ-2026-03",
-    name: "Tariqul Islam",
-    bloodGroup: "A+",
-    hospital: "Square Hospital, Dhaka",
-    contact: "+880 1811-334455",
-    deadline: "Today, before 7:00 PM",
-    urgency: "Urgent",
-    postedMins: 35,
-    units: 3,
-  },
-  {
-    id: "REQ-2026-04",
-    name: "Nasrin Begum",
-    bloodGroup: "AB-",
-    hospital: "Evercare Hospital, Dhaka",
-    contact: "+880 1922-556677",
-    deadline: "Tomorrow, 10:00 AM",
-    urgency: "Urgent",
-    postedMins: 60,
-    units: 1,
-  },
-  {
-    id: "REQ-2026-05",
-    name: "Kamal Hossain",
-    bloodGroup: "O+",
-    hospital: "BIRDEM General Hospital",
-    contact: "+880 1533-778899",
-    deadline: "Today, before 9:00 PM",
-    urgency: "Immediate",
-    postedMins: 8,
-    units: 2,
-  },
-  {
-    id: "REQ-2026-06",
-    name: "Sumaiya Khanam",
-    bloodGroup: "B-",
-    hospital: "National Heart Foundation",
-    contact: "+880 1644-990011",
-    deadline: "ASAP — Within 1 Hour",
-    urgency: "Critical",
-    postedMins: 3,
-    units: 4,
-  },
-];
+import axios from "axios";
 
 const BLOOD_GROUPS = ["All Groups","A+","A-","B+","B-","O+","O-","AB+","AB-"];
+
+// Map urgency labels for display based on isEmergency flag
 const URGENCY_ORDER = { Critical: 0, Immediate: 1, Urgent: 2 };
 
 const URGENCY_STYLES = {
-  Critical:  { bg: "#dc2626", label: "#fff",    cardBorder: "#dc2626", cardBg: "linear-gradient(to right,#fff5f5,#fff)", pulse: true  },
-  Immediate: { bg: "#AF4444", label: "#fff",    cardBorder: "#AF4444", cardBg: "linear-gradient(to right,#fff8f8,#fff)", pulse: true  },
-  Urgent:    { bg: "#d97706", label: "#fff",    cardBorder: "#d97706", cardBg: "linear-gradient(to right,#fffbeb,#fff)", pulse: false },
+  Critical:  { bg: "#dc2626", label: "#fff", cardBorder: "#dc2626", cardBg: "linear-gradient(to right,#fff5f5,#fff)", pulse: true  },
+  Immediate: { bg: "#AF4444", label: "#fff", cardBorder: "#AF4444", cardBg: "linear-gradient(to right,#fff8f8,#fff)", pulse: true  },
+  Urgent:    { bg: "#d97706", label: "#fff", cardBorder: "#d97706", cardBg: "linear-gradient(to right,#fffbeb,#fff)", pulse: false },
 };
 
 /* ─── Styles ──────────────────────────────────────────────────────────────── */
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
-  @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -102,7 +33,6 @@ const styles = `
     font-family: system-ui, sans-serif;
   }
 
-  /* ── HEADER ───────────────────────────────────────────────────────────── */
   .bl-header {
     max-width: 1000px; margin: 0 auto;
     padding: 3rem 1.5rem 2rem;
@@ -132,7 +62,6 @@ const styles = `
   }
   .bl-subtitle { font-size: 0.875rem; color: var(--muted); }
 
-  /* ── CONTROLS ─────────────────────────────────────────────────────────── */
   .bl-controls {
     display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;
   }
@@ -166,7 +95,6 @@ const styles = `
   .bl-pill-btn:hover { background: var(--deep); color: #fff; border-color: var(--deep); }
   .bl-pill-btn.active { background: var(--deep); color: #fff; border-color: var(--deep); }
 
-  /* ── STATS STRIP ──────────────────────────────────────────────────────── */
   .bl-stats {
     max-width: 1000px; margin: 1.5rem auto 0;
     padding: 0 1.5rem;
@@ -179,14 +107,12 @@ const styles = `
   }
   .bl-stat-chip span:first-child { font-size: 1.1rem; font-weight: 800; color: var(--deep); }
 
-  /* ── MAIN LIST ────────────────────────────────────────────────────────── */
   .bl-main {
     max-width: 1000px; margin: 2rem auto;
     padding: 0 1.5rem 4rem;
     display: flex; flex-direction: column; gap: 1.25rem;
   }
 
-  /* ── CARD ─────────────────────────────────────────────────────────────── */
   .bl-card {
     background: #fff; border-radius: 1rem;
     border-left: 8px solid var(--blood);
@@ -204,49 +130,41 @@ const styles = `
     box-shadow: 0 12px 32px rgba(61,43,43,0.12);
   }
 
-  /* Heartbeat pulse for critical/immediate */
-  .bl-card.pulse {
-    animation: heartbeat 2.2s infinite;
-  }
+  .bl-card.pulse { animation: heartbeat 2.2s infinite; }
   @keyframes heartbeat {
     0%   { box-shadow: 0 0 0 0 rgba(175,68,68,0.2); }
     70%  { box-shadow: 0 0 0 16px rgba(175,68,68,0); }
     100% { box-shadow: 0 0 0 0 rgba(175,68,68,0); }
   }
 
-  /* rank number watermark */
   .bl-rank {
-    position: absolute; top: 0.75rem; right: 1.25rem;
-    font-family: 'Playfair Display', serif;
-    font-size: 4rem; font-weight: 700;
+    position: absolute; top: 1rem; right: 1.5rem;
+    font-size: 3rem; font-weight: 900;
     color: rgba(61,43,43,0.04); line-height: 1;
-    user-select: none; pointer-events: none;
+    pointer-events: none; user-select: none;
   }
 
-  /* ── CARD BODY ────────────────────────────────────────────────────────── */
   .bl-card-body { flex: 1; }
-
   .bl-card-top {
     display: flex; align-items: center; gap: 0.75rem;
-    margin-bottom: 1rem; flex-wrap: wrap;
+    flex-wrap: wrap; margin-bottom: 1rem;
   }
 
   .bl-urgency-badge {
-    font-size: 9px; font-weight: 700;
-    letter-spacing: 0.12em; text-transform: uppercase;
-    padding: 3px 12px; border-radius: 999px;
+    font-size: 9px; font-weight: 800; letter-spacing: 0.2em;
+    text-transform: uppercase; padding: 3px 10px;
+    border-radius: 999px;
   }
 
   .bl-patient-name {
     font-family: 'Playfair Display', serif;
-    font-size: 1.5rem; font-weight: 400; color: var(--deep);
+    font-size: 1.4rem; font-weight: 400; color: var(--deep);
   }
 
   .bl-card-grid {
-    display: grid; grid-template-columns: 1fr;
-    gap: 0.75rem;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 1.5rem; margin-bottom: 0.5rem;
   }
-  @media (min-width: 480px) { .bl-card-grid { grid-template-columns: 1fr 1fr; } }
 
   .bl-field-label {
     display: block; font-size: 9px; font-weight: 700;
@@ -265,7 +183,6 @@ const styles = `
     margin-top: 0.75rem;
   }
 
-  /* ── BLOOD CIRCLE ─────────────────────────────────────────────────────── */
   .bl-group-wrap {
     display: flex; flex-direction: column;
     align-items: center; gap: 0.5rem;
@@ -288,7 +205,6 @@ const styles = `
   .bl-group-label { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
   .bl-units-label { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 
-  /* ── RESPOND BUTTON ───────────────────────────────────────────────────── */
   .bl-respond-btn {
     margin-top: 1rem;
     display: inline-flex; align-items: center; gap: 0.5rem;
@@ -302,7 +218,6 @@ const styles = `
   }
   .bl-respond-btn:hover { background: #b91c1c; }
 
-  /* ── EMPTY STATE ──────────────────────────────────────────────────────── */
   .bl-empty {
     text-align: center; padding: 4rem 2rem;
     color: var(--muted);
@@ -310,27 +225,73 @@ const styles = `
   .bl-empty-icon { font-size: 3rem; margin-bottom: 1rem; }
   .bl-empty-title { font-family:'Playfair Display',serif; font-size:1.5rem; color:var(--deep); margin-bottom:0.5rem; }
   .bl-empty-sub { font-size:0.875rem; }
+
+  .bl-status-msg {
+    text-align: center; padding: 4rem 2rem;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .bl-status-msg.error { color: #dc2626; }
 `;
 
+/* ─── Helper: derive urgency label from API data ──────────────────────────── */
+function getUrgencyLabel(req) {
+  // If your API has an urgencyLevel field, use it; otherwise derive from isEmergency
+  if (req.urgencyLevel) return req.urgencyLevel; // "Critical" | "Immediate" | "Urgent"
+  return "Urgent"; // default fallback
+}
+
 /* ─── Component ───────────────────────────────────────────────────────────── */
-export default function BloodList() {
+export default function EmergencyBloodList() {
+  const [requests, setRequests]   = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState("");
   const [bloodFilter, setBloodFilter] = useState("All Groups");
-  const [view, setView] = useState("emergency"); // "emergency" | "all"
+
+  useEffect(() => {
+    const fetchEmergencyRequests = async () => {
+      try {
+        setLoading(true);
+        // Fetch only emergency requests from the API
+        const response = await axios.get("http://localhost:5000/api/blood-requests?emergency=true");
+        const formatted = response.data.map((req) => ({
+          id:         req._id,
+          name:       req.receiverId?.name || "Unknown",
+          bloodGroup: req.bloodGroup,
+          hospital:   req.hospital,
+          contact:    req.receiverId?.phone || "N/A",
+          location:   req.location,
+          units:      req.unitsNeeded || 1,
+          deadline:   new Date(req.createdAt).toLocaleDateString(),
+          urgency:    getUrgencyLabel(req),
+          postedMins: Math.floor((Date.now() - new Date(req.createdAt)) / 60000),
+        }));
+        setRequests(formatted);
+      } catch (err) {
+        setError("Failed to load emergency requests.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmergencyRequests();
+  }, []);
 
   const filtered = useMemo(() => {
-    let list = [...REQUESTS];
+    let list = [...requests];
     if (bloodFilter !== "All Groups") list = list.filter(r => r.bloodGroup === bloodFilter);
-    // Sort by urgency priority then by time posted
     list.sort((a, b) =>
       (URGENCY_ORDER[a.urgency] ?? 9) - (URGENCY_ORDER[b.urgency] ?? 9)
       || a.postedMins - b.postedMins
     );
     return list;
-  }, [bloodFilter]);
+  }, [requests, bloodFilter]);
 
-  const criticalCount  = REQUESTS.filter(r => r.urgency === "Critical").length;
-  const immediateCount = REQUESTS.filter(r => r.urgency === "Immediate").length;
-  const urgentCount    = REQUESTS.filter(r => r.urgency === "Urgent").length;
+  const criticalCount  = requests.filter(r => r.urgency === "Critical").length;
+  const immediateCount = requests.filter(r => r.urgency === "Immediate").length;
+  const urgentCount    = requests.filter(r => r.urgency === "Urgent").length;
 
   return (
     <>
@@ -358,14 +319,11 @@ export default function BloodList() {
               {BLOOD_GROUPS.map(g => <option key={g}>{g}</option>)}
             </select>
 
-            <button
-              className={`bl-pill-btn ${view === "emergency" ? "active" : ""}`}
-              onClick={() => setView("emergency")}
-            >
+            <button className="bl-pill-btn active">
               🚨 Emergency
             </button>
 
-            <Link to="/requests" className="bl-pill-btn">
+            <Link to="/blood-list" className="bl-pill-btn">
               All Requests
             </Link>
           </div>
@@ -373,29 +331,23 @@ export default function BloodList() {
 
         {/* ── STATS STRIP ─────────────────────────────────────────────── */}
         <div className="bl-stats">
-          <div className="bl-stat-chip">
-            <span>{criticalCount}</span> Critical
-          </div>
-          <div className="bl-stat-chip">
-            <span>{immediateCount}</span> Immediate
-          </div>
-          <div className="bl-stat-chip">
-            <span>{urgentCount}</span> Urgent
-          </div>
-          <div className="bl-stat-chip">
-            <span>{REQUESTS.length}</span> Total Active
-          </div>
+          <div className="bl-stat-chip"><span>{criticalCount}</span> Critical</div>
+          <div className="bl-stat-chip"><span>{immediateCount}</span> Immediate</div>
+          <div className="bl-stat-chip"><span>{urgentCount}</span> Urgent</div>
+          <div className="bl-stat-chip"><span>{requests.length}</span> Total Active</div>
         </div>
 
         {/* ── CARDS ───────────────────────────────────────────────────── */}
         <main className="bl-main">
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="bl-status-msg">Loading emergency requests…</div>
+          ) : error ? (
+            <div className="bl-status-msg error">{error}</div>
+          ) : filtered.length === 0 ? (
             <div className="bl-empty">
               <div className="bl-empty-icon">🩸</div>
               <div className="bl-empty-title">No requests found</div>
-              <p className="bl-empty-sub">
-                No emergency requests match the selected blood group.
-              </p>
+              <p className="bl-empty-sub">No emergency requests match the selected blood group.</p>
             </div>
           ) : (
             filtered.map((req, idx) => {
@@ -404,28 +356,20 @@ export default function BloodList() {
                 <div
                   key={req.id}
                   className={`bl-card ${u.pulse ? "pulse" : ""}`}
-                  style={{
-                    borderLeftColor: u.cardBorder,
-                    background: u.cardBg,
-                  }}
+                  style={{ borderLeftColor: u.cardBorder, background: u.cardBg }}
                 >
-                  {/* Rank watermark */}
                   <div className="bl-rank">#{idx + 1}</div>
 
-                  {/* Body */}
                   <div className="bl-card-body">
                     <div className="bl-card-top">
-                      <span
-                        className="bl-urgency-badge"
-                        style={{ background: u.bg, color: u.label }}
-                      >
+                      <span className="bl-urgency-badge" style={{ background: u.bg, color: u.label }}>
                         {req.urgency}
                       </span>
                       <h4 className="bl-patient-name">{req.name}</h4>
                       <span style={{ fontSize:"10px", color:"var(--muted)", marginLeft:"auto" }}>
                         {req.postedMins < 60
                           ? `${req.postedMins} mins ago`
-                          : `${Math.floor(req.postedMins/60)}h ago`}
+                          : `${Math.floor(req.postedMins / 60)}h ago`}
                       </span>
                     </div>
 
@@ -449,7 +393,6 @@ export default function BloodList() {
                     </a>
                   </div>
 
-                  {/* Blood group circle */}
                   <div className="bl-group-wrap">
                     <div className="bl-group-circle">
                       <span className="bl-group-text">{req.bloodGroup}</span>

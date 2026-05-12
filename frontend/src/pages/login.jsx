@@ -369,7 +369,6 @@ function BloodIllustration() {
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [role,     setRole]     = useState("");
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -379,8 +378,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (!role)               { setError("Please select your role to continue."); return; }
-    if (!email || !password) { setError("Please fill in all fields.");            return; }
+    if (!email || !password) { setError("Please fill in all fields."); return; }
 
     setLoading(true);
     try {
@@ -399,7 +397,7 @@ export default function Login() {
         role: response.data.role,
       });
 
-      // Navigate based on role
+      // Navigate based on role from database
       const nextRoute = response.data.role === "admin"
         ? "/admin"
         : response.data.role === "donor"
@@ -451,25 +449,7 @@ export default function Login() {
           {/* ── RIGHT ────────────────────────────────────────────── */}
           <div className="ll-right">
             <h2 className="ll-heading">Sign In</h2>
-            <p className="ll-subheading">Select your role and enter your credentials</p>
-
-            {/* Role pills */}
-            <div className="ll-role-pills">
-              {ROLES.map((r) => (
-                <button
-                  key={r.value}
-                  type="button"
-                  onClick={() => { setRole(r.value); setError(""); }}
-                  className={`ll-role-pill ${role === r.value ? r.activeClass : ""}`}
-                >
-                  <span
-                    className="pill-dot"
-                    style={{ backgroundColor: role === r.value ? r.dot : "var(--border)" }}
-                  />
-                  {r.label}
-                </button>
-              ))}
-            </div>
+            <p className="ll-subheading">Enter your credentials to log in</p>
 
             <form onSubmit={handleSubmit}>
               <div className="ll-field">

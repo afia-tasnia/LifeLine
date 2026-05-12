@@ -1,4 +1,6 @@
 import { useState } from "react";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext.jsx";
 
 /* ─── Styles ─────────────────────────────────────────────────────────────────── */
 const styles = `
@@ -227,6 +229,15 @@ const styles = `
     margin-bottom: 0.65rem;
   }
 
+  .rq-check-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    user-select: none;
+  }
+
   .rq-input, .rq-select {
     width: 100%;
     background: transparent;
@@ -421,22 +432,21 @@ const styles = `
 const BLOOD_GROUPS = ["A+", "A−", "B+", "B−", "O+", "O−", "AB+", "AB−"];
 
 export default function Request() {
+  const { user } = useAuth();
   const [form, setForm] = useState({
-    patientName: "",
-    bloodGroup:  "A+",
-    urgency:     "Normal",
-    hospital:    "",
-    phone:       "",
-    message:     "",
+    bloodGroup:   "A+",
+    hospital:     "",
+    location:     "",
+    unitsNeeded:  1,
+    isEmergency:  false,
   });
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState("");
   const [success, setSuccess] = useState(false);
 
-  const isEmergency = form.urgency === "Emergency";
-
   const set = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+    setForm((prev) => ({ ...prev, [field]: value }));
     if (error) setError("");
   };
 
@@ -444,26 +454,29 @@ export default function Request() {
     e.preventDefault();
     setError("");
 
-    if (!form.patientName.trim()) { setError("Please enter the patient's full name."); return; }
-    if (!form.hospital.trim())    { setError("Please enter the hospital or location."); return; }
-    if (!form.phone.trim())       { setError("Please enter a contact number."); return; }
+    if (!form.hospital.trim())  { setError("Please enter the hospital or location."); return; }
+    if (!form.location.trim())  { setError("Please enter the area/location."); return; }
+    if (form.unitsNeeded < 1)   { setError("Please enter units needed (minimum 1)."); return; }
 
     setLoading(true);
     try {
-      // ── Phase 4: replace with real API call ──────────────────────────────
-      // const res = await axios.post("/api/requests", {
-      //   patientName: form.patientName,
-      //   bloodGroup:  form.bloodGroup,
-      //   urgency:     form.urgency.toLowerCase(),
-      //   hospital:    form.hospital,
-      //   phone:       form.phone,
-      //   message:     form.message,
-      // }, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
-      // ─────────────────────────────────────────────────────────────────────
-      await new Promise((r) => setTimeout(r, 1200));
+      const response = await axios.post(
+        "http://localhost:5000/api/blood-requests",
+        {
+          bloodGroup: form.bloodGroup,
+          hospital: form.hospital,
+          location: form.location,
+          unitsNeeded: parseInt(form.unitsNeeded),
+          isEmergency: form.isEmergency,
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        }
+      );
+      
       setSuccess(true);
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to submit blood request. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -486,11 +499,10 @@ export default function Request() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
-            <h2 className="rq-success-title">Request Sent</h2>
+            <h2 className="rq-success-title">Request Submitted</h2>
             <p className="rq-success-body">
-              Your request for <strong>{form.bloodGroup}</strong> blood has been submitted.
-              Donors near <strong>{form.hospital.split(",")[0]}</strong> will be notified
-              immediately.{isEmergency && " This has been marked as an emergency and escalated to the top of the list."}
+              Your request for <strong>{form.bloodGroup}</strong> blood ({form.unitsNeeded} units) at <strong>{form.hospital}</strong> has been submitted.
+              Donors in <strong>{form.location}</strong> will be notified immediately.{form.isEmergency && " This has been marked as an emergency and escalated to the top of the list."}
             </p>
             <a href="/" className="rq-success-back">Return to Home</a>
           </div>
@@ -511,7 +523,7 @@ export default function Request() {
             </header>
 
             {/* Emergency banner */}
-            {isEmergency && (
+            {form.isEmergency && (
               <div className="rq-urgency-banner">
                 <span className="rq-urgency-dot" />
                 <span className="rq-urgency-text">
@@ -522,22 +534,10 @@ export default function Request() {
 
             {/* ─── FORM ────────────────────────────────────────── */}
             <div className="rq-form-wrapper">
-              <p className="rq-section-label">Patient Details</p>
+              <p className="rq-section-label">Blood Request Details</p>
 
               <form onSubmit={handleSubmit}>
-                {/* Patient Name */}
-                <div className="rq-field">
-                  <label className="rq-label">Patient Name</label>
-                  <input
-                    type="text"
-                    className="rq-input"
-                    placeholder="Enter full name"
-                    value={form.patientName}
-                    onChange={set("patientName")}
-                  />
-                </div>
-
-                {/* Blood Group + Urgency */}
+                {/* Blood Group + Units */}
                 <div className="rq-field-row">
                   <div>
                     <label className="rq-label">Blood Group</label>
@@ -552,58 +552,56 @@ export default function Request() {
                     </select>
                   </div>
                   <div>
-                    <label className="rq-label">Urgency</label>
-                    <select
-                      className={`rq-select${isEmergency ? " emergency" : ""}`}
-                      value={form.urgency}
-                      onChange={set("urgency")}
-                    >
-                      <option value="Normal">Normal</option>
-                      <option value="Emergency">EMERGENCY</option>
-                    </select>
+                    <label className="rq-label">Units Needed</label>
+                    <input
+                      type="number"
+                      className="rq-input"
+                      placeholder="e.g. 2"
+                      value={form.unitsNeeded}
+                      onChange={set("unitsNeeded")}
+                      min="1"
+                      max="10"
+                    />
                   </div>
                 </div>
 
                 {/* Hospital */}
                 <div className="rq-field">
-                  <label className="rq-label">Hospital / Location</label>
+                  <label className="rq-label">Hospital Name</label>
                   <input
                     type="text"
                     className="rq-input"
-                    placeholder="e.g. Dhaka Medical College, Dhanmondi"
+                    placeholder="e.g. Dhaka Medical College"
                     value={form.hospital}
                     onChange={set("hospital")}
                   />
                 </div>
 
-                {/* Phone */}
+                {/* Location */}
                 <div className="rq-field">
-                  <label className="rq-label">Contact Number</label>
+                  <label className="rq-label">Location / Area</label>
                   <input
-                    type="tel"
+                    type="text"
                     className="rq-input"
-                    placeholder="+880 1..."
-                    value={form.phone}
-                    onChange={set("phone")}
-                    style={{ fontFamily: "monospace", letterSpacing: "0.04em" }}
+                    placeholder="e.g. Dhanmondi, Dhaka"
+                    value={form.location}
+                    onChange={set("location")}
                   />
                 </div>
 
-                {/* Message */}
+                {/* Emergency Checkbox */}
                 <div className="rq-field">
-                  <label className="rq-label">
-                    Additional Message{" "}
-                    <span style={{ fontWeight: 400, opacity: 0.5 }}>(optional)</span>
+                  <label className="rq-check-label">
+                    <input
+                      type="checkbox"
+                      checked={form.isEmergency}
+                      onChange={set("isEmergency")}
+                      style={{ width: "18px", height: "18px", cursor: "pointer", marginRight: "8px" }}
+                    />
+                    <span style={{ fontSize: "0.9rem", fontWeight: "600" }}>
+                      Mark as Emergency
+                    </span>
                   </label>
-                  <textarea
-                    className="rq-textarea"
-                    placeholder="Any extra details for donors or hospital staff…"
-                    rows={3}
-                    maxLength={280}
-                    value={form.message}
-                    onChange={set("message")}
-                  />
-                  <div className="rq-char-count">{form.message.length} / 280</div>
                 </div>
 
                 {error && <div className="rq-error">{error}</div>}
@@ -611,7 +609,7 @@ export default function Request() {
                 <div className="rq-submit-area">
                   <button
                     type="submit"
-                    className={`rq-submit${isEmergency ? " emergency-submit" : ""}`}
+                    className={`rq-submit${form.isEmergency ? " emergency-submit" : ""}`}
                     disabled={loading}
                   >
                     {loading ? (
@@ -621,7 +619,7 @@ export default function Request() {
                       </>
                     ) : (
                       <span>
-                        {isEmergency ? "Send Emergency Request" : "Submit Request"}
+                        {form.isEmergency ? "Send Emergency Request" : "Submit Request"}
                       </span>
                     )}
                   </button>

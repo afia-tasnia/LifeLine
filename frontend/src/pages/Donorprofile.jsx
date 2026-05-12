@@ -35,7 +35,7 @@ export default function DonorProfile() {
       setLoading(true);
       setError("");
       try {
-        const response = await axios.get(`http://localhost:5000/api/donors/${id}`);
+        const response = await axios.get(`http://localhost:5000/api/users/donors/${id}`);
         setDonor(response.data);
         setAvatarPreview(response.data.avatarUrl || null);
       } catch (err) {
@@ -62,12 +62,7 @@ export default function DonorProfile() {
     reader.onload = (ev) => setAvatarPreview(ev.target.result);
     reader.readAsDataURL(file);
 
-    // TODO (Phase 3): upload to backend
-    // const formData = new FormData();
-    // formData.append("avatar", file);
-    // axios.put(`/api/donors/${id}/avatar`, formData).then(...)
-
-    // Simulated upload feedback
+    // Simulated upload feedback (avatar upload not yet implemented)
     setUploading(true);
     setUploadSuccess(false);
     setTimeout(() => {

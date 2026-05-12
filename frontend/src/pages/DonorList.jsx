@@ -28,7 +28,7 @@ export default function DonorList() {
         if (cityFilter) params.location = cityFilter;
         if (search) params.search = search;
 
-        const response = await axios.get("http://localhost:5000/api/donors", { params });
+        const response = await axios.get("http://localhost:5000/api/users/donors", { params });
         setDonors(response.data);
       } catch (err) {
         setError(err.response?.data?.message || "Unable to load donors.");

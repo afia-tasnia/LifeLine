@@ -1,29 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
-// ── Mock data (replace with API in Phase 4) ───────────────────────────────
-const MOCK_REQUESTS = [
-  { _id: "r1", patientName: "Rahman Ali",       bloodGroup: "B+",  hospital: "Dhaka Medical College",          contact: "+880 1700-112233", deadline: "Today, before 4:00 PM",  urgency: "emergency" },
-  { _id: "r2", patientName: "Sultana Kamal",     bloodGroup: "O-",  hospital: "Evercare Hospital",               contact: "+880 1811-445566", deadline: "25 March, 10:00 AM",     urgency: "normal" },
-  { _id: "r3", patientName: "Tanvir Ahmed",      bloodGroup: "A-",  hospital: "Sylhet MAG Osmani",               contact: "+880 1912-778899", deadline: "26 March, Evening",      urgency: "normal" },
-  { _id: "r4", patientName: "Mehedi Hasan",      bloodGroup: "AB+", hospital: "Rajshahi Medical College",        contact: "+880 1515-223344", deadline: "28 March, 9:00 AM",      urgency: "normal" },
-  { _id: "r5", patientName: "Nusrat Jahan",      bloodGroup: "O+",  hospital: "Khulna City Hospital",            contact: "+880 1313-556677", deadline: "Tomorrow, 11:30 AM",     urgency: "normal" },
-  { _id: "r6", patientName: "Kamrul Hasan",      bloodGroup: "B-",  hospital: "Sher-e-Bangla Medical",           contact: "+880 1717-889900", deadline: "30 March, Morning",      urgency: "normal" },
-  { _id: "r7", patientName: "Ayesha Siddiqua",   bloodGroup: "A+",  hospital: "Rangpur Medical College",         contact: "+880 1616-112244", deadline: "24 March, 12:00 PM",     urgency: "normal" },
-  { _id: "r8", patientName: "Rafiqul Islam",     bloodGroup: "AB-", hospital: "Mymensingh Medical",              contact: "+880 1414-334455", deadline: "01 April, 10:00 AM",     urgency: "normal" },
-  { _id: "r9", patientName: "Fahim Muntassir",   bloodGroup: "O+",  hospital: "Cumilla Central Hospital",        contact: "+880 1818-667788", deadline: "29 March, 11:00 AM",     urgency: "normal" },
-  { _id: "r10", patientName: "Tasnim Ara",       bloodGroup: "B+",  hospital: "Sheikh Fazilatunnessa Memorial",  contact: "+880 1712-445892", deadline: "Tomorrow, 2:00 PM",      urgency: "normal" },
-];
+import axios from "axios";
 
 const BLOOD_GROUPS = ["All Groups", "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
 
 export default function BloodList() {
+  const [requests, setRequests] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState("All Groups");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // TODO Phase 4: replace MOCK_REQUESTS with API fetch
-  // useEffect(() => { axios.get("/api/requests").then(r => setRequests(r.data)) }, [])
+  useEffect(() => {
+    const fetchBloodRequests = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get("http://localhost:5000/api/blood-requests");
+        const formattedRequests = response.data.map((req) => ({
+          _id: req._id,
+          patientName: req.receiverId?.name || "Unknown",
+          bloodGroup: req.bloodGroup,
+          hospital: req.hospital,
+          contact: req.receiverId?.phone || "N/A",
+          location: req.location,
+          unitsNeeded: req.unitsNeeded,
+          deadline: new Date(req.createdAt).toLocaleDateString(),
+          urgency: req.isEmergency ? "emergency" : "normal",
+        }));
+        setRequests(formattedRequests);
+      } catch (err) {
+        setError("Failed to load blood requests");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const filtered = MOCK_REQUESTS.filter(
+    fetchBloodRequests();
+  }, []);
+
+  const filtered = requests.filter(
     (r) => selectedGroup === "All Groups" || r.bloodGroup === selectedGroup
   );
 
@@ -41,7 +56,6 @@ export default function BloodList() {
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
-            {/* Emergency only link */}
             <Link to="/emergency">
               <button style={emergencyBtnStyle} className="py-3 px-6 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm flex items-center gap-2 hover:-translate-y-px transition-transform">
                 <span style={dotStyle} />
@@ -49,7 +63,6 @@ export default function BloodList() {
               </button>
             </Link>
 
-            {/* Blood group filter */}
             <select
               value={selectedGroup}
               onChange={(e) => setSelectedGroup(e.target.value)}
@@ -66,7 +79,15 @@ export default function BloodList() {
 
       {/* ── Cards ───────────────────────────────────────────────────────── */}
       <main className="max-w-5xl mx-auto space-y-6 px-4 md:px-8 pb-20">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="py-20 text-center text-[10px] uppercase tracking-widest font-bold opacity-30">
+            Loading blood requests...
+          </div>
+        ) : error ? (
+          <div className="py-20 text-center text-red-600 text-[10px] uppercase tracking-widest font-bold">
+            {error}
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="py-20 text-center text-[10px] uppercase tracking-widest font-bold opacity-30">
             No requests found for {selectedGroup}
           </div>
@@ -90,7 +111,6 @@ function RequestCard({ request }) {
       style={isEmergency ? emergencyCardStyle : normalCardStyle}
     >
       <div className="flex-1">
-        {/* Name row */}
         <div className="flex items-center gap-4 mb-4">
           {isEmergency && (
             <span className="bg-red-600 text-white text-[10px] px-3 py-1 font-bold tracking-widest rounded-full uppercase">
@@ -100,7 +120,6 @@ function RequestCard({ request }) {
           <h4 className="text-3xl font-serif text-[#3D2B2B]">{request.patientName}</h4>
         </div>
 
-        {/* Details grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <p>
             <span className="opacity-50 uppercase text-[10px] font-bold block">Hospital</span>
@@ -118,7 +137,6 @@ function RequestCard({ request }) {
         </div>
       </div>
 
-      {/* Blood group circle */}
       <div
         className="flex flex-col items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-[5deg]"
         style={groupCircleStyle}
@@ -135,7 +153,7 @@ function RequestCard({ request }) {
   );
 }
 
-// ── Styles (mirrors blood_list.css) ──────────────────────────────────────────
+// ── Styles ────────────────────────────────────────────────────────────────────
 
 const emergencyBtnStyle = {
   border: "1px solid #E8E2D9",

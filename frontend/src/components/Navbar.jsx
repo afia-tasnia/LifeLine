@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import logoSvg from "../assets/images/logo.svg";
 
 const styles = `
@@ -189,8 +189,8 @@ const styles = `
 const NAV_LINKS = [
   { label: "Home",        to: "/" },
   { label: "Find Donors", to: "/donors" },
-  { label: "Requests",    to: "/request" },
-  { label: "Dashboard",   to: "/dashboard" },
+  { label: "Blood List",  to: "/blood-list" },
+  { label: "Learn More",  to: "/learn-more" },
 ];
 
 export default function Navbar() {
@@ -237,17 +237,29 @@ export default function Navbar() {
           <div className="nav-actions">
             {user ? (
               <>
-                <span className="nav-user">
-                  Welcome, {user.name} ({user.role})
-                </span>
+                <Link
+                  to={
+                    user.role === "donor" ? "/donor-dashboard" :
+                    user.role === "admin" ? "/admin" :
+                    "/dashboard"
+                  }
+                  className="nav-user"
+                  style={{ textDecoration: "none", color: "var(--vintage-rose)" }}
+                >
+                  👤 {user.name}
+                </Link>
                 <button onClick={handleLogout} className="nav-cta">
                   Logout
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login" className="nav-login">Log In</Link>
-                <Link to="/signup" className="nav-cta">Donate Now</Link>
+                <Link to="/login" className="nav-login">
+                  Log In
+                </Link>
+                <Link to="/signup" className="nav-cta">
+                  Register
+                </Link>
               </>
             )}
 
@@ -276,13 +288,22 @@ export default function Navbar() {
           ))}
           {user ? (
             <>
-              <div className="nav-mobile-link" style={{ color: "var(--deep-text)" }}>
-                Welcome, {user.name} ({user.role})
-              </div>
+              <Link
+                to={
+                  user.role === "donor" ? "/donor-dashboard" :
+                  user.role === "admin" ? "/admin" :
+                  "/dashboard"
+                }
+                className="nav-mobile-link"
+                style={{ color: "var(--vintage-rose)" }}
+                onClick={() => setMenuOpen(false)}
+              >
+                👤 My Profile ({user.role})
+              </Link>
               <button
                 onClick={handleLogout}
                 className="nav-mobile-link"
-                style={{ color: "var(--vintage-rose)", background: "none", border: "none", cursor: "pointer" }}
+                style={{ color: "var(--vintage-rose)", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
               >
                 Logout
               </button>
