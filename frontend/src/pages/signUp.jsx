@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 import signUpVideo    from "../assets/videos/sign_up_video.mp4";
 import donorVideo     from "../assets/videos/donor_reg_video.mp4";
 
@@ -447,11 +448,17 @@ function DonorForm({ onBack }) {
       return setError("Please confirm the eligibility statement.");
     setLoading(true);
     try {
-      // Phase 2: await axios.post("/api/auth/register/donor", form);
-      await new Promise(r => setTimeout(r, 1200));
-      alert(`Donor application submitted for ${form.fullName}!`);
-    } catch {
-      setError("Registration failed. Please try again.");
+      await axios.post("http://localhost:5000/api/users/register", {
+        name: form.fullName,
+        email: form.email,
+        password: form.password,
+        bloodGroup: form.bloodGroup,
+        phone: "", // TODO: Add phone field to form
+        role: "donor",
+      });
+      alert(`Donor application submitted for ${form.fullName}! Please log in.`);
+    } catch (err) {
+      setError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -572,11 +579,17 @@ function ReceiverForm({ onBack }) {
       return setError("Password must be at least 6 characters.");
     setLoading(true);
     try {
-      // Phase 2: await axios.post("/api/auth/register/receiver", { fullName, email, password });
-      await new Promise(r => setTimeout(r, 1000));
+      await axios.post("http://localhost:5000/api/users/register", {
+        name: fullName,
+        email: email,
+        password: password,
+        bloodGroup: "A+", // Default, TODO: Add blood group selection
+        phone: "", // TODO: Add phone field to form
+        role: "receiver",
+      });
       alert(`Account created for ${fullName}! Please log in.`);
-    } catch {
-      setError("Registration failed. Please try again.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import logoSvg from "../assets/images/logo.svg";
 
 const styles = `
@@ -103,6 +104,16 @@ const styles = `
   .nav-login:hover { opacity: 0.7; }
   @media (min-width: 576px) { .nav-login { display: block; } }
 
+  .nav-user {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--deep-text);
+    white-space: nowrap;
+  }
+  @media (min-width: 576px) { .nav-user { display: block; } }
+
   .nav-cta {
     font-size: 9px;
     font-weight: 900;
@@ -178,16 +189,24 @@ const styles = `
 const NAV_LINKS = [
   { label: "Home",        to: "/" },
   { label: "Find Donors", to: "/donors" },
-  { label: "Requests",    to: "/requests" },
+  { label: "Requests",    to: "/request" },
   { label: "Dashboard",   to: "/dashboard" },
 ];
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const isActive = (path) =>
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+    setMenuOpen(false);
+  };
 
   return (
     <>
@@ -216,8 +235,21 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="nav-actions">
-            <Link to="/login" className="nav-login">Log In</Link>
-            <Link to="/signup" className="nav-cta">Donate Now</Link>
+            {user ? (
+              <>
+                <span className="nav-user">
+                  Welcome, {user.name} ({user.role})
+                </span>
+                <button onClick={handleLogout} className="nav-cta">
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="nav-login">Log In</Link>
+                <Link to="/signup" className="nav-cta">Donate Now</Link>
+              </>
+            )}
 
             {/* Burger */}
             <button
@@ -242,14 +274,29 @@ export default function Navbar() {
               {label}
             </Link>
           ))}
-          <Link
-            to="/login"
-            className="nav-mobile-link"
-            onClick={() => setMenuOpen(false)}
-            style={{ color: "var(--vintage-rose)" }}
-          >
-            Log In
-          </Link>
+          {user ? (
+            <>
+              <div className="nav-mobile-link" style={{ color: "var(--deep-text)" }}>
+                Welcome, {user.name} ({user.role})
+              </div>
+              <button
+                onClick={handleLogout}
+                className="nav-mobile-link"
+                style={{ color: "var(--vintage-rose)", background: "none", border: "none", cursor: "pointer" }}
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/login"
+              className="nav-mobile-link"
+              onClick={() => setMenuOpen(false)}
+              style={{ color: "var(--vintage-rose)" }}
+            >
+              Log In
+            </Link>
+          )}
         </div>
       </nav>
     </>

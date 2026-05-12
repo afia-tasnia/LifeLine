@@ -6,7 +6,7 @@ import generateToken from "../utils/generateToken.js";
 // REGISTER USER
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, bloodGroup, phone, role } = req.body;
 
     const userExists = await User.findOne({ email });
 
@@ -25,12 +25,18 @@ const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      bloodGroup: bloodGroup || null,
+      phone: phone || null,
+      role: role || "donor",
     });
 
     res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
+      bloodGroup: user.bloodGroup,
+      phone: user.phone,
+      role: user.role,
       token: generateToken(user._id),
     });
 
@@ -57,6 +63,9 @@ const loginUser = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        bloodGroup: user.bloodGroup,
+        phone: user.phone,
+        role: user.role,
         token: generateToken(user._id),
       });
 

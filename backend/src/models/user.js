@@ -21,6 +21,20 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: 6,
     },
+    bloodGroup: {
+      type: String,
+      enum: ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"],
+      default: null,
+    },
+    phone: {
+      type: String,
+      default: null,
+    },
+    role: {
+      type: String,
+      enum: ["donor", "admin"],
+      default: "donor",
+    },
   },
   {
     timestamps: true,

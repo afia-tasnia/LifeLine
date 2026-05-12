@@ -92,7 +92,7 @@ export default function ReceiverProfile() {
         {/* ── Glass Card ──────────────────────────────────────────────── */}
         <div style={glassCard} className="rounded-2xl p-8 md:p-12 relative overflow-hidden">
           {/* Decorative blob */}
-          <div className="absolute top-0 right-0 w-40 h-40 bg-[#AF4444]/5 rounded-bl-full pointer-events-none" />
+          <div className="absolute top-0 right-0 w-40 h-40 bg-[#1d6fa4]/8 rounded-bl-full pointer-events-none" />
 
           {/* ── Role label ────────────────────────────────────────────── */}
           <div className="mb-6 flex items-center gap-2">
@@ -124,7 +124,7 @@ export default function ReceiverProfile() {
                       className="w-full h-full object-cover rounded-full"
                     />
                   ) : (
-                    <span className="text-4xl font-serif text-[#AF4444] select-none">
+                    <span className="text-4xl font-serif text-[#1d6fa4] select-none">
                       {initials}
                     </span>
                   )}
@@ -140,7 +140,7 @@ export default function ReceiverProfile() {
                 {/* Blood group badge */}
                 <div
                   className="absolute -bottom-2 -right-2 w-12 h-12 text-white rounded-full flex items-center justify-center font-bold border-4 border-white text-sm"
-                  style={{ backgroundColor: "#AF4444" }}
+                  style={{ backgroundColor: "#1d6fa4" }}
                 >
                   {receiver.bloodGroup}
                 </div>
@@ -233,7 +233,7 @@ export default function ReceiverProfile() {
         <div className="mt-8 text-center">
           <Link
             to="/"
-            className="text-xs font-bold uppercase tracking-widest text-white/60 hover:text-white transition-colors"
+            className="text-xs font-bold uppercase tracking-widest text-sky-200/70 hover:text-white transition-colors"
           >
             ← Back to Home
           </Link>
@@ -301,10 +301,11 @@ function CameraIcon() {
 
 const bgStyle = {
   backgroundImage:
-    "linear-gradient(rgba(61,43,43,0.7), rgba(61,43,43,0.7)), url('/resources/donor_profile.jpg')",
+    "linear-gradient(135deg, rgba(15,40,80,0.88) 0%, rgba(29,78,132,0.80) 50%, rgba(15,40,80,0.88) 100%)",
   backgroundAttachment: "fixed",
   backgroundSize: "cover",
   backgroundPosition: "center",
+  backgroundColor: "#0f2850", // fallback solid colour if no image
 };
 
 const glassCard = {

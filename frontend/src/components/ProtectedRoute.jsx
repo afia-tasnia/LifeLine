@@ -1,4 +1,20 @@
-// src/components/ProtectedRoute.jsx  (temporary stub)
-export default function ProtectedRoute({ children }) {
-  return children
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext.jsx";
+
+export default function ProtectedRoute({ children, adminOnly }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div style={{ padding: "2rem", textAlign: "center" }}>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (adminOnly && user.role !== "admin") {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
 }

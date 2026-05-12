@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext.jsx";
 
 /* ─── Styles ─────────────────────────────────────────────────────────────────── */
 const styles = `
@@ -364,6 +367,8 @@ function BloodIllustration() {
 
 /* ─── Main component ─────────────────────────────────────────────────────────── */
 export default function Login() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [role,     setRole]     = useState("");
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
@@ -379,18 +384,31 @@ export default function Login() {
 
     setLoading(true);
     try {
-      // ── Phase 2: replace with real API call ──────────────────────────
-      // const res = await axios.post("/api/auth/login", { email, password, role });
-      // localStorage.setItem("token", res.data.token);
-      // navigate based on role:
-      //   admin    → "/admin"
-      //   donor    → "/donor-dashboard"
-      //   receiver → "/dashboard"
-      // ─────────────────────────────────────────────────────────────────
-      await new Promise((r) => setTimeout(r, 1000));
-      alert(`Logged in as ${ROLES.find((r) => r.value === role)?.label}`);
-    } catch {
-      setError("Invalid credentials. Please try again.");
+      const response = await axios.post("http://localhost:5000/api/users/login", {
+        email,
+        password,
+      });
+
+      // Use AuthContext login function
+      login(response.data.token, {
+        _id: response.data._id,
+        name: response.data.name,
+        email: response.data.email,
+        bloodGroup: response.data.bloodGroup,
+        phone: response.data.phone,
+        role: response.data.role,
+      });
+
+      // Navigate based on role
+      const nextRoute = response.data.role === "admin"
+        ? "/admin"
+        : response.data.role === "donor"
+          ? `/donors/${response.data._id}`
+          : `/receivers/${response.data._id}`;
+      navigate(nextRoute);
+
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
