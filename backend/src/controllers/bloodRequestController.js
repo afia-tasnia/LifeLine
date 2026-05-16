@@ -1,12 +1,45 @@
 import BloodRequest from "../models/BloodRequest.js";
 
-// CREATE blood request
+// ─── helpers ───────────────────────────────────────────────────────────────────
+const startOfToday = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+// ─── CREATE blood request ──────────────────────────────────────────────────────
 const createBloodRequest = async (req, res) => {
   try {
     const { bloodGroup, hospital, location, unitsNeeded, isEmergency } = req.body;
 
     if (!bloodGroup || !hospital || !location || !unitsNeeded) {
       return res.status(400).json({ message: "Please provide all required fields." });
+    }
+
+    // ── Emergency rate-limit: max 3 per user per day ───────────────────
+    if (isEmergency) {
+      const count = await BloodRequest.countDocuments({
+        receiverId:  req.user._id,
+        isEmergency: true,
+        createdAt:   { $gte: startOfToday() },
+      });
+
+      if (count >= 3) {
+        // Calculate seconds until midnight so the frontend can show a countdown
+        const midnight = new Date();
+        midnight.setHours(24, 0, 0, 0);
+        const resetInSeconds = Math.floor((midnight - Date.now()) / 1000);
+
+        return res.status(429).json({
+          message: "You have reached the limit of 3 emergency requests today.",
+          emergencyRequestsUsed: 3,
+          emergencyRequestsLimit: 3,
+          resetInSeconds,
+        });
+      }
+
+      // Attach current count to the response body so the frontend can update the UI
+      req._emergencyCountAfter = count + 1;
     }
 
     const bloodRequest = await BloodRequest.create({
@@ -18,28 +51,53 @@ const createBloodRequest = async (req, res) => {
       isEmergency: isEmergency || false,
     });
 
-    return res.status(201).json(bloodRequest);
+    return res.status(201).json({
+      ...bloodRequest.toObject(),
+      // Only included when isEmergency so the frontend can refresh the counter
+      ...(isEmergency && {
+        emergencyRequestsUsed:  req._emergencyCountAfter,
+        emergencyRequestsLimit: 3,
+      }),
+    });
   } catch (error) {
     console.error("Error creating blood request:", error);
     return res.status(500).json({ message: "Failed to create blood request.", error: error.message });
   }
 };
 
-// GET all blood requests
+// ─── GET today's emergency request count for the logged-in user ────────────────
+// Used by the frontend to show "X/3 emergency requests used today" on page load
+const getEmergencyUsageToday = async (req, res) => {
+  try {
+    const count = await BloodRequest.countDocuments({
+      receiverId:  req.user._id,
+      isEmergency: true,
+      createdAt:   { $gte: startOfToday() },
+    });
+
+    const midnight = new Date();
+    midnight.setHours(24, 0, 0, 0);
+    const resetInSeconds = Math.floor((midnight - Date.now()) / 1000);
+
+    return res.status(200).json({
+      emergencyRequestsUsed:  count,
+      emergencyRequestsLimit: 3,
+      resetInSeconds,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to fetch emergency usage." });
+  }
+};
+
+// ─── GET all blood requests ────────────────────────────────────────────────────
 const getBloodRequests = async (req, res) => {
   try {
     const { isEmergency, bloodGroup, status } = req.query;
     const filter = {};
 
-    if (isEmergency !== undefined) {
-      filter.isEmergency = isEmergency === "true";
-    }
-    if (bloodGroup) {
-      filter.bloodGroup = bloodGroup;
-    }
-    if (status) {
-      filter.status = status;
-    }
+    if (isEmergency !== undefined) filter.isEmergency = isEmergency === "true";
+    if (bloodGroup)                filter.bloodGroup  = bloodGroup;
+    if (status)                    filter.status      = status;
 
     const bloodRequests = await BloodRequest.find(filter)
       .populate("receiverId", "name email phone location")
@@ -52,7 +110,7 @@ const getBloodRequests = async (req, res) => {
   }
 };
 
-// GET emergency blood requests
+// ─── GET emergency blood requests ─────────────────────────────────────────────
 const getEmergencyRequests = async (req, res) => {
   try {
     const emergencyRequests = await BloodRequest.find({ isEmergency: true })
@@ -66,7 +124,7 @@ const getEmergencyRequests = async (req, res) => {
   }
 };
 
-// GET blood request by ID
+// ─── GET blood request by ID ───────────────────────────────────────────────────
 const getBloodRequestById = async (req, res) => {
   try {
     const bloodRequest = await BloodRequest.findById(req.params.id)
@@ -83,7 +141,7 @@ const getBloodRequestById = async (req, res) => {
   }
 };
 
-// UPDATE blood request
+// ─── UPDATE blood request ──────────────────────────────────────────────────────
 const updateBloodRequest = async (req, res) => {
   try {
     const bloodRequest = await BloodRequest.findById(req.params.id);
@@ -92,17 +150,13 @@ const updateBloodRequest = async (req, res) => {
       return res.status(404).json({ message: "Blood request not found." });
     }
 
-    // Only receiver or admin can update
     if (req.user.role !== "admin" && bloodRequest.receiverId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Not authorized to update this request." });
     }
 
     const updates = ["bloodGroup", "hospital", "location", "unitsNeeded", "isEmergency", "status"];
-
     updates.forEach((field) => {
-      if (req.body[field] !== undefined) {
-        bloodRequest[field] = req.body[field];
-      }
+      if (req.body[field] !== undefined) bloodRequest[field] = req.body[field];
     });
 
     await bloodRequest.save();
@@ -113,7 +167,7 @@ const updateBloodRequest = async (req, res) => {
   }
 };
 
-// DELETE blood request
+// ─── DELETE blood request ──────────────────────────────────────────────────────
 const deleteBloodRequest = async (req, res) => {
   try {
     const bloodRequest = await BloodRequest.findById(req.params.id);
@@ -122,7 +176,6 @@ const deleteBloodRequest = async (req, res) => {
       return res.status(404).json({ message: "Blood request not found." });
     }
 
-    // Only receiver or admin can delete
     if (req.user.role !== "admin" && bloodRequest.receiverId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Not authorized to delete this request." });
     }
@@ -135,11 +188,38 @@ const deleteBloodRequest = async (req, res) => {
   }
 };
 
+// ─── GET live stats (for Home.jsx) ────────────────────────────────────────────
+// Replaces the hardcoded mock data currently on the Home page
+import User from "../models/User.js";
+
+const getLiveStats = async (req, res) => {
+  try {
+    const [totalDonors, totalRequests, emergencyRequests, fulfilledRequests] =
+      await Promise.all([
+        User.countDocuments({ role: "donor" }),
+        BloodRequest.countDocuments(),
+        BloodRequest.countDocuments({ isEmergency: true }),
+        BloodRequest.countDocuments({ status: "completed" }),
+      ]);
+
+    return res.status(200).json({
+      totalDonors,
+      totalRequests,
+      emergencyRequests,
+      fulfilledRequests,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to load stats." });
+  }
+};
+
 export {
   createBloodRequest,
+  getEmergencyUsageToday,
   getBloodRequests,
   getEmergencyRequests,
   getBloodRequestById,
   updateBloodRequest,
   deleteBloodRequest,
+  getLiveStats,
 };

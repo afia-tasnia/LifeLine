@@ -73,6 +73,11 @@ const styles = `
     text-decoration: none;
     position: relative;
     transition: color 0.3s ease;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-family: system-ui, sans-serif;
   }
   .nav-link::after {
     content: '';
@@ -181,22 +186,114 @@ const styles = `
     padding: 0.75rem 0;
     border-bottom: 1px solid #E8E2D9;
     transition: color 0.2s;
+    background: none;
+    border-bottom: 1px solid #E8E2D9;
+    border-left: none; border-right: none; border-top: none;
+    cursor: pointer;
+    text-align: left;
+    font-family: system-ui, sans-serif;
+    display: block;
+    width: 100%;
   }
   .nav-mobile-link:hover { color: var(--vintage-rose); }
   .nav-mobile-link.active { color: var(--vintage-rose); }
+
+  /* AUTH GATE MODAL — shared with Home but scoped here too */
+  .nav-auth-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(61,43,43,0.55);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+  }
+  .nav-auth-modal {
+    background: #F9F7F2; max-width: 420px; width: 100%;
+    padding: 2.5rem 2rem; position: relative;
+    border-top: 4px solid #8E4444;
+    box-shadow: 0 24px 60px rgba(61,43,43,0.25);
+    animation: navModalUp 0.25s cubic-bezier(0.165,0.84,0.44,1);
+    font-family: system-ui, sans-serif;
+  }
+  @keyframes navModalUp {
+    from { opacity:0; transform: translateY(20px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+  .nav-auth-modal-close {
+    position: absolute; top: 1rem; right: 1rem;
+    background: none; border: none; font-size: 1.25rem;
+    cursor: pointer; color: rgba(61,43,43,0.5);
+    line-height: 1; padding: 0.25rem;
+  }
+  .nav-auth-modal-icon {
+    width: 3.5rem; height: 3.5rem; border-radius: 50%;
+    background: rgba(142,68,68,0.10);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; margin: 0 auto 1.25rem;
+  }
+  .nav-auth-modal h3 {
+    font-size: 1.4rem; color: #3D2B2B;
+    text-align: center; margin: 0 0 0.75rem;
+    font-weight: 700;
+  }
+  .nav-auth-modal p {
+    font-size: 0.9rem; color: rgba(61,43,43,0.6);
+    text-align: center; line-height: 1.6; margin: 0 0 1.75rem;
+  }
+  .nav-auth-btns { display: flex; gap: 0.75rem; flex-direction: column; }
+  .nav-auth-btn-primary {
+    display: block; text-align: center; width: 100%;
+    padding: 0.85rem; text-decoration: none;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: #8E4444; color: #F9F7F2;
+    border: none; cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+  }
+  .nav-auth-btn-primary:hover { filter: brightness(1.1); }
+  .nav-auth-btn-outline {
+    display: block; text-align: center; width: 100%;
+    padding: 0.85rem; text-decoration: none;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border: 1px solid #3D2B2B; color: #3D2B2B;
+    background: transparent;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+  }
+  .nav-auth-btn-outline:hover { background: #3D2B2B; color: #F9F7F2; }
 `;
+
+// Which nav links are donor-only (blocked for guests & receivers)
+const DONOR_ONLY_PATHS = ["/blood-list", "/emergency"];
 
 const NAV_LINKS = [
   { label: "Home",        to: "/" },
   { label: "Find Donors", to: "/donors" },
-  { label: "Blood List",  to: "/blood-list" },
+  { label: "Blood List",  to: "/blood-list",  donorOnly: true },
+  { label: "Emergency",   to: "/emergency",   donorOnly: true },
   { label: "Learn More",  to: "/learn-more" },
 ];
 
+const MODAL_CONTENT = {
+  "blood-list": {
+    icon: "🩸",
+    title: "Donors Only",
+    body: "Blood requests contain sensitive contact information and are only visible to registered donors. Sign up as a donor to access this page.",
+  },
+  emergency: {
+    icon: "🚨",
+    title: "Donors Only",
+    body: "Emergency requests are only visible to registered donors so that contact details stay protected. Please log in or register as a donor.",
+  },
+};
+
 export default function Navbar() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen]   = useState(false);
+  const [modal, setModal]         = useState(null); // 'blood-list' | 'emergency' | null
+  const location  = useLocation();
+  const navigate  = useNavigate();
   const { user, logout } = useAuth();
 
   const isActive = (path) =>
@@ -208,9 +305,43 @@ export default function Navbar() {
     setMenuOpen(false);
   };
 
+  // Intercept donor-only links
+  const handleNavClick = (link) => {
+    setMenuOpen(false);
+    if (link.donorOnly && user?.role !== "donor") {
+      // derive modal key from path ("/blood-list" → "blood-list")
+      setModal(link.to.replace("/", ""));
+    } else {
+      navigate(link.to);
+    }
+  };
+
+  const m = modal ? MODAL_CONTENT[modal] : null;
+
   return (
     <>
       <style>{styles}</style>
+
+      {/* Auth-gate modal */}
+      {m && (
+        <div className="nav-auth-overlay" onClick={() => setModal(null)}>
+          <div className="nav-auth-modal" onClick={e => e.stopPropagation()}>
+            <button className="nav-auth-modal-close" onClick={() => setModal(null)}>✕</button>
+            <div className="nav-auth-modal-icon">{m.icon}</div>
+            <h3>{m.title}</h3>
+            <p>{m.body}</p>
+            <div className="nav-auth-btns">
+              <Link to="/signup" className="nav-auth-btn-primary" onClick={() => setModal(null)}>
+                Create Free Account
+              </Link>
+              <Link to="/login" className="nav-auth-btn-outline" onClick={() => setModal(null)}>
+                Already have an account? Log In
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       <nav className="nav-root">
         <div className="nav-inner">
 
@@ -224,11 +355,14 @@ export default function Navbar() {
 
           {/* Desktop links */}
           <ul className="nav-links">
-            {NAV_LINKS.map(({ label, to }) => (
-              <li key={to}>
-                <Link to={to} className={`nav-link ${isActive(to) ? "active" : ""}`}>
-                  {label}
-                </Link>
+            {NAV_LINKS.map((link) => (
+              <li key={link.to}>
+                <button
+                  className={`nav-link ${isActive(link.to) ? "active" : ""}`}
+                  onClick={() => handleNavClick(link)}
+                >
+                  {link.label}
+                </button>
               </li>
             ))}
           </ul>
@@ -254,12 +388,8 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link to="/login" className="nav-login">
-                  Log In
-                </Link>
-                <Link to="/signup" className="nav-cta">
-                  Register
-                </Link>
+                <Link to="/login" className="nav-login">Log In</Link>
+                <Link to="/signup" className="nav-cta">Register</Link>
               </>
             )}
 
@@ -276,15 +406,14 @@ export default function Navbar() {
 
         {/* Mobile menu */}
         <div className={`nav-mobile ${menuOpen ? "open" : ""}`}>
-          {NAV_LINKS.map(({ label, to }) => (
-            <Link
-              key={to}
-              to={to}
-              className={`nav-mobile-link ${isActive(to) ? "active" : ""}`}
-              onClick={() => setMenuOpen(false)}
+          {NAV_LINKS.map((link) => (
+            <button
+              key={link.to}
+              className={`nav-mobile-link ${isActive(link.to) ? "active" : ""}`}
+              onClick={() => handleNavClick(link)}
             >
-              {label}
-            </Link>
+              {link.label}
+            </button>
           ))}
           {user ? (
             <>
@@ -300,11 +429,7 @@ export default function Navbar() {
               >
                 👤 My Profile ({user.role})
               </Link>
-              <button
-                onClick={handleLogout}
-                className="nav-mobile-link"
-                style={{ color: "var(--vintage-rose)", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
-              >
+              <button onClick={handleLogout} className="nav-mobile-link" style={{ color: "var(--vintage-rose)" }}>
                 Logout
               </button>
             </>

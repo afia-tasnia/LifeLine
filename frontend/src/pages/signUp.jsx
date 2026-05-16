@@ -362,7 +362,7 @@ const styles = `
   .su-donor-link:hover { border-color: var(--rose); color: var(--rose); }
 `;
 
-const BLOOD_GROUPS = ["A+","A-","B+","B-","O+","O-","AB+","AB-"];
+const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
 
 /* ─── Step 1: Role Selector ───────────────────────────────────────────────── */
 function RoleSelector({ onSelect }) {

@@ -1,4 +1,8 @@
 import { useState } from "react";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext";
+
+const API = "http://localhost:5000/api";
 
 const HOSPITALS = [
   "Dhaka Medical College Hospital",
@@ -12,17 +16,65 @@ const HOSPITALS = [
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
 
 export default function Reserve() {
+  const { user } = useAuth();
+
   const [form, setForm] = useState({
-    name: "", phone: "", blood: "A+", hospital: HOSPITALS[0], date: "", time: "", note: "",
+    name:     user?.name  ?? "",
+    phone:    user?.phone ?? "",
+    blood:    user?.bloodGroup ?? "A+",
+    hospital: HOSPITALS[0],
+    date:     "",
+    time:     "",
+    note:     "",
   });
-  const [submitted, setSubmitted] = useState(false);
+
+  const [submitted, setSubmitted]   = useState(false);
+  const [loading, setLoading]       = useState(false);
+  const [serverError, setServerError] = useState("");
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.name || !form.phone || !form.date || !form.time) return;
-    setSubmitted(true);
-    // TODO: POST to /api/reserves with form data + auth token
+
+    setLoading(true);
+    setServerError("");
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${API}/reservations`,
+        {
+          name:       form.name,
+          phone:      form.phone,
+          bloodGroup: form.blood,
+          hospital:   form.hospital,
+          date:       form.date,
+          time:       form.time,
+          note:       form.note,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSubmitted(true);
+    } catch (err) {
+      setServerError(err.response?.data?.message || "Failed to submit reservation. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetForm = () => {
+    setSubmitted(false);
+    setServerError("");
+    setForm({
+      name:     user?.name  ?? "",
+      phone:    user?.phone ?? "",
+      blood:    user?.bloodGroup ?? "A+",
+      hospital: HOSPITALS[0],
+      date:     "",
+      time:     "",
+      note:     "",
+    });
   };
 
   return (
@@ -61,7 +113,7 @@ export default function Reserve() {
               </p>
               <button
                 className="mt-4 py-3 px-8 bg-[#3D2B2B] text-white text-[10px] uppercase tracking-widest rounded-full hover:bg-[#AF4444] transition-all"
-                onClick={() => { setSubmitted(false); setForm({ name: "", phone: "", blood: "A+", hospital: HOSPITALS[0], date: "", time: "", note: "" }); }}
+                onClick={resetForm}
               >
                 Submit Another
               </button>
@@ -69,6 +121,13 @@ export default function Reserve() {
           ) : (
             /* Reservation Form */
             <div className="space-y-7">
+
+              {/* Server error */}
+              {serverError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-4 py-3 font-medium">
+                  ⚠️ {serverError}
+                </div>
+              )}
 
               {/* Name + Phone */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -153,6 +212,7 @@ export default function Reserve() {
                   <input
                     type="date"
                     value={form.date}
+                    min={new Date().toISOString().slice(0, 10)}
                     onChange={(e) => set("date", e.target.value)}
                     className="w-full bg-transparent border-b-2 border-[#3D2B2B]/10 focus:border-[#AF4444] outline-none py-3 text-base transition-colors"
                   />
@@ -189,7 +249,7 @@ export default function Reserve() {
               <div className="bg-[#AF4444]/5 rounded-2xl p-4 border border-[#AF4444]/15">
                 <p className="text-[10px] leading-relaxed opacity-70">
                   🩸 By submitting, you confirm you are in good health, have not donated blood in the last
-                  56 days, and agree to LifeLine's terms of service. The hospital admin will contact you
+                  90 days, and agree to LifeLine's terms of service. The hospital admin will contact you
                   to finalize your slot.
                 </p>
               </div>
@@ -197,10 +257,10 @@ export default function Reserve() {
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={!form.name || !form.phone || !form.date || !form.time}
+                disabled={!form.name || !form.phone || !form.date || !form.time || loading}
                 className="w-full py-5 bg-[#3D2B2B] text-white text-[11px] font-bold uppercase tracking-[0.4em] rounded-2xl hover:bg-[#AF4444] disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg"
               >
-                Confirm Reservation →
+                {loading ? "Submitting…" : "Confirm Reservation →"}
               </button>
 
             </div>

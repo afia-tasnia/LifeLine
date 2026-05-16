@@ -237,9 +237,9 @@ const styles = `
 
 /* ─── Helper: derive urgency label from API data ──────────────────────────── */
 function getUrgencyLabel(req) {
-  // If your API has an urgencyLevel field, use it; otherwise derive from isEmergency
-  if (req.urgencyLevel) return req.urgencyLevel; // "Critical" | "Immediate" | "Urgent"
-  return "Urgent"; // default fallback
+  // Derive from real API fields — urgencyLevel doesn't exist on our model
+  if (req.isEmergency) return "Critical";
+  return "Urgent";
 }
 
 /* ─── Component ───────────────────────────────────────────────────────────── */
@@ -254,7 +254,7 @@ export default function EmergencyBloodList() {
       try {
         setLoading(true);
         // Fetch only emergency requests from the API
-        const response = await axios.get("http://localhost:5000/api/blood-requests?emergency=true");
+        const response = await axios.get("http://localhost:5000/api/blood-requests?isEmergency=true");
         const formatted = response.data.map((req) => ({
           id:         req._id,
           name:       req.receiverId?.name || "Unknown",

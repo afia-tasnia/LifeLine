@@ -7,6 +7,14 @@ const BADGE_STYLES = {
   Bronze:   { background: "linear-gradient(135deg,#cd7f32,#f5d1b0)", color: "#4d2600" },
 };
 
+// Compute badge from donation count (mirrors backend logic)
+function getBadge(count) {
+  if (count >= 20) return "Platinum";
+  if (count >= 10) return "Gold";
+  if (count >= 5)  return "Silver";
+  return "Bronze";
+}
+
 function formatDate(value) {
   if (!value) return "—";
   const date = new Date(value);
@@ -19,12 +27,14 @@ function formatDate(value) {
 }
 
 export default function DonorCard({ donor }) {
-  const badgeStyle = BADGE_STYLES[donor.badge] ?? BADGE_STYLES.Bronze;
+  // Use computed badge — API returns donationCount, not badge
+  const badge = getBadge(donor.donationCount ?? 0);
+  const badgeStyle = BADGE_STYLES[badge] ?? BADGE_STYLES.Bronze;
   const available = donor.availability === "available";
 
   return (
     <div className="dl-card">
-      <div className="dl-card-badge" style={badgeStyle}>{donor.badge}</div>
+      <div className="dl-card-badge" style={badgeStyle}>{badge}</div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
         <div>
@@ -65,11 +75,11 @@ export default function DonorCard({ donor }) {
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
           <span style={{ opacity: .6 }}>Donations</span>
-          <span style={{ fontWeight: 700 }}>{donor.donationCount}</span>
+          <span style={{ fontWeight: 700 }}>{donor.donationCount ?? 0}</span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
           <span style={{ opacity: .6 }}>Last Donation</span>
-          <span>{formatDate(donor.lastDonation)}</span>
+          <span>{formatDate(donor.lastDonatedAt)}</span>
         </div>
       </div>
 

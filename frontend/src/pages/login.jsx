@@ -387,21 +387,25 @@ export default function Login() {
         password,
       });
 
-      // Use AuthContext login function
+      // Use AuthContext login function — store full profile data
       login(response.data.token, {
-        _id: response.data._id,
-        name: response.data.name,
-        email: response.data.email,
-        bloodGroup: response.data.bloodGroup,
-        phone: response.data.phone,
-        role: response.data.role,
+        _id:           response.data._id,
+        name:          response.data.name,
+        email:         response.data.email,
+        bloodGroup:    response.data.bloodGroup,
+        phone:         response.data.phone,
+        location:      response.data.location,
+        role:          response.data.role,
+        availability:  response.data.availability,
+        donationCount: response.data.donationCount,
+        lastDonatedAt: response.data.lastDonatedAt,
       });
 
       // Navigate based on role from database
       const nextRoute = response.data.role === "admin"
         ? "/admin"
         : response.data.role === "donor"
-          ? `/donors/${response.data._id}`
+          ? "/donor-dashboard"
           : `/receivers/${response.data._id}`;
       navigate(nextRoute);
 
