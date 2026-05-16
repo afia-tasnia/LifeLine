@@ -3,6 +3,31 @@ import User     from "../models/User.js";
 
 const COOLDOWN_DAYS = 90;
 
+// ─── SYNC UTILITY ─────────────────────────────────────────────────────────────
+// Recomputes donationCount and lastDonatedAt from the actual donations
+// collection and writes them back to the user document. Call this after
+// any write (create, delete) instead of using $inc / $dec, so the user
+// document can never drift out of sync.
+export const syncDonorStats = async (donorId) => {
+  const stats = await Donation.aggregate([
+    { $match: { donorId } },
+    {
+      $group: {
+        _id: null,
+        donationCount: { $sum: 1 },
+        lastDonatedAt: { $max: "$createdAt" },
+      },
+    },
+  ]);
+
+  const donationCount = stats.length > 0 ? stats[0].donationCount : 0;
+  const lastDonatedAt = stats.length > 0 ? stats[0].lastDonatedAt : null;
+
+  await User.findByIdAndUpdate(donorId, { donationCount, lastDonatedAt });
+
+  return { donationCount, lastDonatedAt };
+};
+
 // ─── CREATE donation record ────────────────────────────────────────────────────
 const createDonation = async (req, res) => {
   try {
@@ -10,6 +35,11 @@ const createDonation = async (req, res) => {
 
     if (!receiverId || !units) {
       return res.status(400).json({ message: "Please provide receiverId and units." });
+    }
+
+    const receiver = await User.findById(receiverId);
+    if (!receiver) {
+      return res.status(404).json({ message: "Receiver not found." });
     }
 
     // ── Cooldown check ────────────────────────────────────────────────
@@ -32,19 +62,16 @@ const createDonation = async (req, res) => {
 
     // ── Record the donation ───────────────────────────────────────────
     const donation = await Donation.create({
-      donorId:    req.user._id,
+      donorId: req.user._id,
       receiverId,
       units,
     });
 
-    // ── Update donor fields atomically ────────────────────────────────
-    await User.findByIdAndUpdate(req.user._id, {
-      $inc:  { donationCount: 1 },
-      $set:  {
-        lastDonatedAt: new Date(),
-        availability:  "unavailable",   // automatically mark unavailable
-      },
-    });
+    // ── Sync donor stats from source of truth ─────────────────────────
+    await syncDonorStats(req.user._id);
+
+    // ── Always mark unavailable after donating ─────────────────────────
+    await User.findByIdAndUpdate(req.user._id, { availability: "unavailable" });
 
     return res.status(201).json(donation);
   } catch (error) {
@@ -67,16 +94,15 @@ const getCooldownStatus = async (req, res) => {
     );
     const daysRemaining = Math.max(0, COOLDOWN_DAYS - daysSince);
 
-    // Auto-restore availability when cooldown has ended
     if (daysRemaining === 0 && donor.availability === "unavailable") {
       await User.findByIdAndUpdate(req.user._id, { availability: "available" });
     }
 
     return res.status(200).json({
-      inCooldown:    daysRemaining > 0,
+      inCooldown: daysRemaining > 0,
       daysRemaining,
       lastDonatedAt: donor.lastDonatedAt,
-      cooldownDays:  COOLDOWN_DAYS,
+      cooldownDays: COOLDOWN_DAYS,
     });
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch cooldown status." });
@@ -111,11 +137,11 @@ const getDonorHistory = async (req, res) => {
 };
 
 // ─── GET donations by donor ID — PUBLIC (for donor profile page) ───────────────
-// Anyone can view a donor's donation list; sensitive receiver fields are excluded.
 const getDonationsByDonorId = async (req, res) => {
   try {
     const donations = await Donation.find({ donorId: req.params.donorId })
-      .populate("receiverId", "name location") // no email/phone for privacy
+      .populate("donorId",    "name bloodGroup")
+      .populate("receiverId", "name location")
       .sort({ createdAt: -1 });
 
     return res.status(200).json(donations);
@@ -139,10 +165,13 @@ const deleteDonation = async (req, res) => {
 
     await Donation.findByIdAndDelete(req.params.id);
 
-    // Decrement donationCount on the user (floor at 0)
-    await User.findByIdAndUpdate(req.user._id, {
-      $inc: { donationCount: -1 },
-    });
+    // ── Sync donor stats from source of truth (no more $inc/-1 drift) ─
+    const { donationCount, lastDonatedAt } = await syncDonorStats(req.user._id);
+
+    // If no donations left, restore availability
+    if (donationCount === 0) {
+      await User.findByIdAndUpdate(req.user._id, { availability: "available" });
+    }
 
     return res.status(200).json({ message: "Donation deleted." });
   } catch (error) {
@@ -176,7 +205,14 @@ const getTopDonors = async (req, res) => {
         $project: {
           _id: 0,
           donorId: "$_id",
-          donor: { _id: "$donor._id", name: "$donor.name", email: "$donor.email", bloodGroup: "$donor.bloodGroup" },
+          donor: {
+            _id:          "$donor._id",
+            name:         "$donor.name",
+            email:        "$donor.email",
+            bloodGroup:   "$donor.bloodGroup",
+            availability: "$donor.availability",
+            avatarUrl:    "$donor.avatarUrl",   // ← FIX: was missing, caused avatar not to show
+          },
           totalDonations: 1,
           donationCount:  1,
         },

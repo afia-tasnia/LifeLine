@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 const API = "http://localhost:5000/api";
 
@@ -41,10 +42,11 @@ function formatAppointment(date, time) {
 export default function HospitalAdmin() {
   const token = localStorage.getItem("token");
   const authHeaders = { headers: { Authorization: `Bearer ${token}` } };
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const [reservations, setReservations] = useState([]);
   const [donors, setDonors]             = useState([]);
-  const [activeTab, setActiveTab]       = useState("schedule");
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState("");
   const [updatingId, setUpdatingId]     = useState(null);
@@ -53,12 +55,8 @@ export default function HospitalAdmin() {
     setLoading(true);
     setError("");
     try {
-      const [resRes, donorRes] = await Promise.all([
-        axios.get(`${API}/reservations`, authHeaders),
-        axios.get(`${API}/users/donors`),
-      ]);
+      const resRes = await axios.get(`${API}/reservations`, authHeaders);
       setReservations(resRes.data);
-      setDonors(donorRes.data);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load dashboard data.");
     } finally {
@@ -80,15 +78,11 @@ export default function HospitalAdmin() {
     }
   }
 
-  function handleRemoveDonor(id) {
-    if (!window.confirm("Remove this donor from view?")) return;
-    setDonors((prev) => prev.filter((d) => d._id !== id));
-  }
 
   const todayStr       = new Date().toISOString().slice(0, 10);
   const todayCount     = reservations.filter((r) => r.date === todayStr).length;
   const urgentCount    = reservations.filter((r) => r.urgency === "urgent").length;
-  const availDonors    = donors.filter((d) => d.availability === "available").length;
+  const availDonors    = 0; // donor registry removed
   const fulfilledCount = reservations.filter((r) => r.status === "fulfilled").length;
 
   if (loading) {
@@ -115,16 +109,21 @@ export default function HospitalAdmin() {
 
   return (
     <div className="min-h-screen bg-[#F9F7F2] text-[#3D2B2B]">
+
+
       <main className="max-w-5xl mx-auto px-6 py-12">
 
-        <header className="flex justify-between items-end mb-12">
+        <header className="flex justify-between items-center mb-12">
           <div>
             <p className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-50 mb-1">Hospital Portal</p>
             <h1 className="text-4xl font-serif">Donation Schedule</h1>
           </div>
-          <div className="text-right">
-            <span className="text-3xl font-serif text-[#FF6B6B]">{todayCount}</span>
-            <p className="text-[9px] uppercase tracking-widest font-bold opacity-60">Reservations Today</p>
+          <div className="flex items-center gap-6">
+            <div className="text-right">
+              <span className="text-3xl font-serif text-[#FF6B6B]">{todayCount}</span>
+              <p className="text-[9px] uppercase tracking-widest font-bold opacity-60">Reservations Today</p>
+            </div>
+
           </div>
         </header>
 
@@ -135,22 +134,12 @@ export default function HospitalAdmin() {
           <StatCard value={fulfilledCount}      label="Fulfilled Today"    accent="#D4AF37" />
         </div>
 
-        <div className="flex gap-1 mb-6 bg-white border border-[#3D2B2B]/5 rounded-lg p-1 w-fit shadow-sm">
-          {[{ key: "schedule", label: "Donation Schedule" }, { key: "donors", label: "Donor Registry" }].map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key)}
-              className={`px-5 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${
-                activeTab === key ? "bg-[#3D2B2B] text-white" : "text-[#3D2B2B]/60 hover:text-[#3D2B2B]"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="mb-6">
+          <p className="text-[10px] uppercase tracking-widest font-bold opacity-40">Scheduled appointments</p>
         </div>
 
         {/* ── Reservations table ── */}
-        {activeTab === "schedule" && (
+        {
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-[#3D2B2B]/5">
             <table className="w-full text-left">
               <thead className="bg-[#3D2B2B] text-white text-[10px] uppercase tracking-widest">
@@ -207,66 +196,8 @@ export default function HospitalAdmin() {
               </div>
             )}
           </div>
-        )}
+        }
 
-        {/* ── Donors table ── */}
-        {activeTab === "donors" && (
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-[#3D2B2B]/5">
-            <table className="w-full text-left">
-              <thead className="bg-[#3D2B2B] text-white text-[10px] uppercase tracking-widest">
-                <tr>
-                  {["Donor Name", "Blood Group", "Donations", "Badge", "Status", "Action"].map((h) => (
-                    <th key={h} className="px-6 py-4 font-bold">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#3D2B2B]/5">
-                {donors.map((d) => {
-                  const badge = getBadge(d.donationCount ?? 0);
-                  return (
-                    <tr key={d._id} className="hover:bg-[#f3a4a3]/10 transition-colors">
-                      <td className="px-6 py-5 font-bold">{d.name}</td>
-                      <td className="px-6 py-5 font-black text-[#FF6B6B]">{d.bloodGroup}</td>
-                      <td className="px-6 py-5 text-sm font-bold opacity-70">{d.donationCount ?? 0}</td>
-                      <td className="px-6 py-5">
-                        <span
-                          className="text-[9px] font-extrabold uppercase tracking-widest px-3 py-1 rounded"
-                          style={{ color: BADGE_COLOR[badge] ?? "#888", backgroundColor: (BADGE_COLOR[badge] ?? "#888") + "22" }}
-                        >
-                          {badge}
-                        </span>
-                      </td>
-                      <td className="px-6 py-5">
-                        {d.availability === "available" ? (
-                          <span className="flex items-center gap-1.5 text-green-600 font-bold text-xs">
-                            <span className="w-2 h-2 rounded-full bg-green-600" /> Available
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1.5 text-orange-400 font-bold text-xs">
-                            <span className="w-2 h-2 rounded-full bg-orange-400" /> Unavailable
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-5 flex gap-3">
-                        <Link to={`/donors/${d._id}`} className="text-[10px] font-bold uppercase underline hover:text-[#AF4444] transition-colors">
-                          View
-                        </Link>
-                        <button onClick={() => handleRemoveDonor(d._id)} className="text-[10px] font-bold uppercase underline hover:text-red-500 transition-colors opacity-50 hover:opacity-100">
-                          Remove
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            {donors.length === 0 && (
-              <div className="py-16 text-center text-[10px] uppercase tracking-widest opacity-30 font-bold">
-                No donors registered yet
-              </div>
-            )}
-          </div>
-        )}
 
       </main>
     </div>

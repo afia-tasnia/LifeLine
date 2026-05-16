@@ -1,7 +1,9 @@
-import User        from "../models/User.js";
-import bcrypt       from "bcryptjs";
+import User         from "../models/User.js";
+import bcrypt        from "bcryptjs";
 import generateToken from "../utils/generateToken.js";
 import { getCompatibleDonorGroups } from "../utils/bloodCompatibility.js";
+import Donation      from "../models/Donation.js";
+import { syncDonorStats } from "./donationController.js";
 
 // ─── REGISTER USER ─────────────────────────────────────────────────────────────
 const registerUser = async (req, res) => {
@@ -26,6 +28,7 @@ const registerUser = async (req, res) => {
       _id: user._id, name: user.name, email: user.email,
       bloodGroup: user.bloodGroup, phone: user.phone,
       location: user.location, role: user.role,
+      createdAt: user.createdAt,
       token: generateToken(user),
     });
   } catch (error) {
@@ -40,14 +43,32 @@ const loginUser = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user && (await bcrypt.compare(password, user.password))) {
-      res.json({
+      // Sync donation stats on login so the auth context gets fresh data
+      if (user.role === "donor") {
+        await syncDonorStats(user._id);
+        const fresh = await User.findById(user._id).select("-password");
+        return res.json({
+          _id: fresh._id, name: fresh.name, email: fresh.email,
+          bloodGroup: fresh.bloodGroup, phone: fresh.phone,
+          location: fresh.location, role: fresh.role,
+          availability:  fresh.availability,
+          donationCount: fresh.donationCount,
+          lastDonatedAt: fresh.lastDonatedAt,
+          avatarUrl:     fresh.avatarUrl,
+          createdAt:     fresh.createdAt,
+          token: generateToken(fresh),
+        });
+      }
+
+      return res.json({
         _id: user._id, name: user.name, email: user.email,
         bloodGroup: user.bloodGroup, phone: user.phone,
         location: user.location, role: user.role,
-        availability: user.availability,
+        availability:  user.availability,
         donationCount: user.donationCount,
         lastDonatedAt: user.lastDonatedAt,
-        avatarUrl: user.avatarUrl,
+        avatarUrl:     user.avatarUrl,
+        createdAt:     user.createdAt,
         token: generateToken(user),
       });
     } else {
@@ -73,29 +94,22 @@ const updateProfile = async (req, res) => {
 };
 
 // ─── UPLOAD AVATAR ─────────────────────────────────────────────────────────────
-// multer puts the saved file info on req.file
 const uploadAvatar = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded." });
     }
-
-    // Build the public URL — served as /uploads/<filename> by app.js
     const avatarUrl = `/uploads/${req.file.filename}`;
-
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { avatarUrl },
-      { new: true }
-    ).select("-password");
-
+    const user = await User.findByIdAndUpdate(req.user._id, { avatarUrl }, { new: true }).select("-password");
     res.json({ avatarUrl: user.avatarUrl, user });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// ─── GET ALL DONORS (with optional blood-compatibility expansion) ───────────────
+// ─── GET ALL DONORS ────────────────────────────────────────────────────────────
+// FIX: Enriches each donor with a live donationCount from the donations
+// collection, so the Donor Directory page always shows the correct badge/count.
 const getDonors = async (req, res) => {
   try {
     const { bloodGroup, location, search, compatible } = req.query;
@@ -110,7 +124,6 @@ const getDonors = async (req, res) => {
         filter.bloodGroup = bloodGroup;
       }
     }
-
     if (location) filter.location = { $regex: new RegExp(location, "i") };
     if (search) {
       filter.$or = [
@@ -120,18 +133,49 @@ const getDonors = async (req, res) => {
     }
 
     const donors = await User.find(filter).select("-password").sort({ name: 1 });
-    return res.status(200).json(donors);
+
+    // Pull real donation counts for all donors in a single aggregation
+    const donorIds = donors.map(d => d._id);
+    const stats = await Donation.aggregate([
+      { $match: { donorId: { $in: donorIds } } },
+      {
+        $group: {
+          _id: "$donorId",
+          donationCount: { $sum: 1 },
+          lastDonatedAt: { $max: "$createdAt" },
+        },
+      },
+    ]);
+
+    const statsMap = {};
+    stats.forEach(s => { statsMap[s._id.toString()] = s; });
+
+    const enriched = donors.map(d => ({
+      ...d.toObject(),
+      donationCount: statsMap[d._id.toString()]?.donationCount ?? 0,
+      lastDonatedAt: statsMap[d._id.toString()]?.lastDonatedAt ?? null,
+    }));
+
+    return res.status(200).json(enriched);
   } catch (error) {
     return res.status(500).json({ message: "Failed to load donors." });
   }
 };
 
 // ─── GET DONOR BY ID ───────────────────────────────────────────────────────────
+// FIX: Always computes donationCount from donations collection and syncs back.
 const getDonorById = async (req, res) => {
   try {
     const donor = await User.findOne({ _id: req.params.id, role: "donor" }).select("-password");
     if (!donor) return res.status(404).json({ message: "Donor not found." });
-    return res.status(200).json(donor);
+
+    const { donationCount, lastDonatedAt } = await syncDonorStats(donor._id);
+
+    return res.status(200).json({
+      ...donor.toObject(),
+      donationCount,
+      lastDonatedAt,
+    });
   } catch (error) {
     return res.status(500).json({ message: "Failed to load donor." });
   }

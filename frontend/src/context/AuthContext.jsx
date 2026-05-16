@@ -9,7 +9,7 @@ export function AuthProvider({ children }) {
   // Hydrate from localStorage on mount
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
+    const storedUser  = localStorage.getItem('user');
     if (storedToken && storedUser) {
       setUser(JSON.parse(storedUser));
     }

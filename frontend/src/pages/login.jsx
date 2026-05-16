@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -302,6 +302,35 @@ const styles = `
     padding:0.55rem 0.75rem;
     background:#fce4ec;
     border-left:3px solid var(--rose);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  /* COUNTDOWN BADGE */
+  .ll-countdown {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--rose);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.5rem;
+    border-radius: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .ll-countdown-icon {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border: 1.5px solid rgba(255,255,255,0.6);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
   }
 
   /* SUBMIT */
@@ -365,20 +394,45 @@ function BloodIllustration() {
   );
 }
 
+/* ─── Countdown display ──────────────────────────────────────────────────────── */
+function formatCountdown(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return m > 0
+    ? `${m}m ${String(s).padStart(2, "0")}s`
+    : `${s}s`;
+}
+
 /* ─── Main component ─────────────────────────────────────────────────────────── */
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [email,    setEmail]    = useState("");
-  const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(false);
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState("");
+  const [email,      setEmail]      = useState("");
+  const [password,   setPassword]   = useState("");
+  const [remember,   setRemember]   = useState(false);
+  const [loading,    setLoading]    = useState(false);
+  const [error,      setError]      = useState("");
+  const [retryAfter, setRetryAfter] = useState(0); // seconds remaining on rate-limit
+
+  /* ── Countdown ticker ───────────────────────────────────────────────────── */
+  useEffect(() => {
+    if (retryAfter <= 0) return;
+    const timer = setInterval(() => {
+      setRetryAfter(prev => {
+        if (prev <= 1) { clearInterval(timer); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [retryAfter]);
+
+  const isLocked = retryAfter > 0;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     if (!email || !password) { setError("Please fill in all fields."); return; }
+    if (isLocked) return;
 
     setLoading(true);
     try {
@@ -410,7 +464,13 @@ export default function Login() {
       navigate(nextRoute);
 
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed. Please try again.");
+      const data = err.response?.data;
+      setError(data?.message || "Login failed. Please try again.");
+
+      // ── Rate-limit: start the countdown ─────────────────────────────────
+      if (err.response?.status === 429 && data?.retryAfterSeconds) {
+        setRetryAfter(data.retryAfterSeconds);
+      }
     } finally {
       setLoading(false);
     }
@@ -429,7 +489,6 @@ export default function Login() {
             <div className="ll-blob ll-blob-2" />
 
             <div className="ll-left-top">
-              {/* Use <Link to="/"> from react-router-dom in production */}
               <a href="/" className="ll-back">← Back to Home</a>
               <div className="ll-logo">
                 Life<span className="ll-logo-accent">Line</span>
@@ -465,6 +524,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
+                  disabled={isLocked}
                 />
               </div>
 
@@ -477,6 +537,7 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
+                  disabled={isLocked}
                 />
               </div>
 
@@ -493,11 +554,29 @@ export default function Login() {
                 <a href="/forgot-password" className="ll-forgot">Forgot?</a>
               </div>
 
-              {error && <div className="ll-error">{error}</div>}
+              {error && (
+                <div className="ll-error">
+                  <span>{error}</span>
+                  {isLocked && (
+                    <span className="ll-countdown">
+                      <span className="ll-countdown-icon" />
+                      {formatCountdown(retryAfter)}
+                    </span>
+                  )}
+                </div>
+              )}
 
-              <button type="submit" className="ll-submit" disabled={loading}>
+              <button
+                type="submit"
+                className="ll-submit"
+                disabled={loading || isLocked}
+              >
                 {loading && <span className="ll-spinner" />}
-                {loading ? "Signing in…" : "Login"}
+                {isLocked
+                  ? `Try again in ${formatCountdown(retryAfter)}`
+                  : loading
+                    ? "Signing in…"
+                    : "Login"}
               </button>
             </form>
 
@@ -507,7 +586,6 @@ export default function Login() {
               Don't have an account?{" "}
               <a href="/signup">Create one here</a>
               {" · "}
-              <a href="/donor-registration">Register as a Donor</a>
             </p>
           </div>
 

@@ -1,4 +1,7 @@
 import Reservation from "../models/Reservation.js";
+import Donation    from "../models/Donation.js";
+import User        from "../models/User.js";
+import { syncDonorStats } from "./donationController.js";
 
 const startOfToday = () => {
   const d = new Date();
@@ -16,7 +19,7 @@ const createReservation = async (req, res) => {
     }
 
     const reservation = await Reservation.create({
-      donorId: req.user?._id ?? null, // attached if logged in, null for guests
+      donorId: req.user?._id ?? null,
       name,
       phone,
       bloodGroup,
@@ -54,7 +57,7 @@ const getReservations = async (req, res) => {
 // ─── GET today's reservation count (for admin header stat) ────────────────────
 const getTodayStats = async (req, res) => {
   try {
-    const todayStr = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+    const todayStr = new Date().toISOString().slice(0, 10);
 
     const [todayTotal, pending, confirmed, fulfilled] = await Promise.all([
       Reservation.countDocuments({ date: todayStr }),
@@ -76,9 +79,40 @@ const updateReservationStatus = async (req, res) => {
     const reservation = await Reservation.findById(req.params.id);
     if (!reservation) return res.status(404).json({ message: "Reservation not found." });
 
+    const wasAlreadyFulfilled = reservation.status === "fulfilled";
+
     if (status)  reservation.status  = status;
     if (urgency) reservation.urgency = urgency;
     await reservation.save();
+
+    // ── Auto-create a Donation record when marked fulfilled ────────────────
+    // Only fires once (guards against double-marking) and only when the
+    // reservation is linked to a registered donor (donorId is not null).
+    if (status === "fulfilled" && !wasAlreadyFulfilled && reservation.donorId) {
+      try {
+        const latestRequest = await (await import("../models/BloodRequest.js")).default
+          .findOne({ status: "pending" })
+          .sort({ createdAt: -1 })
+          .select("_id receiverId");
+
+        const receiverId = latestRequest?.receiverId ?? reservation.donorId;
+
+        await Donation.create({
+          donorId:    reservation.donorId,
+          receiverId: receiverId,
+          units:      1,
+        });
+
+        // FIX: Use syncDonorStats instead of $inc so count never drifts
+        await syncDonorStats(reservation.donorId);
+
+        // Always mark unavailable after donation
+        await User.findByIdAndUpdate(reservation.donorId, { availability: "unavailable" });
+
+      } catch (donationErr) {
+        console.error("Failed to auto-create donation record:", donationErr.message);
+      }
+    }
 
     return res.status(200).json(reservation);
   } catch (error) {

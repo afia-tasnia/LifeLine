@@ -14,11 +14,11 @@ import EmergencyBloodList from './pages/EmergencyBloodList.jsx'
 import LearnMore from './pages/Learnmore.jsx'
 import Reserve from './pages/Reserve.jsx'
 import FulfilledRequests from './pages/Fulfilledrequests.jsx'
-import DonorDonations from './pages/DonorDonations.jsx'
+import DonorDonations from './pages/Donordonations.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext'
 
 // Pages that should NOT show the navbar
-const NO_NAVBAR = ['/login', '/signup', '/admin']
+const NO_NAVBAR = ['/login', '/signup']
 
 // Redirect /donor-dashboard → /donors/:id using the logged-in user's real _id
 function DonorDashboardRedirect() {
@@ -70,7 +70,7 @@ function Layout() {
           <ProtectedRoute requiredRole="receiver"><ReceiverProfile /></ProtectedRoute>
         } />
         <Route path="/request" element={
-          <ProtectedRoute requiredRole="receiver"><Request /></ProtectedRoute>
+          <ProtectedRoute requiredRole={["donor", "receiver"]}><Request /></ProtectedRoute>
         } />
 
         {/* ── Protected: Hospital Admin ── */}

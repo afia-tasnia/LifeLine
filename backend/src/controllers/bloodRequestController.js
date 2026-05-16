@@ -154,6 +154,7 @@ const updateBloodRequest = async (req, res) => {
       return res.status(403).json({ message: "Not authorized to update this request." });
     }
 
+    // "receiverId" intentionally excluded — owner cannot reassign a request to another user
     const updates = ["bloodGroup", "hospital", "location", "unitsNeeded", "isEmergency", "status"];
     updates.forEach((field) => {
       if (req.body[field] !== undefined) bloodRequest[field] = req.body[field];

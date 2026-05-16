@@ -5,37 +5,186 @@ import { useAuth } from "../context/AuthContext";
 
 const API = "http://localhost:5000/api";
 
+/* ── Styles (defined up top so they're available when JSX renders) ─────────── */
+const bgStyle = {
+  backgroundImage: `
+    radial-gradient(ellipse at 20% 50%, rgba(175,68,68,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(142,52,52,0.12) 0%, transparent 45%),
+    linear-gradient(160deg, #2a1010 0%, #3D2B2B 40%, #1e1010 100%)
+  `,
+  backgroundColor: "#2a1010",
+  backgroundAttachment: "fixed",
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+};
+
+const glassCard = {
+  background: "rgba(255,255,255,0.92)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  border: "1px solid rgba(255,255,255,0.6)",
+  boxShadow: "0 30px 60px -12px rgba(0,0,0,0.45), 0 0 0 1px rgba(175,68,68,0.08)",
+};
+
+const avatarStyle = {
+  width: 120, height: 120,
+  borderRadius: "50%",
+  border: "4px solid white",
+  boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
+  backgroundColor: "#F9F7F2",
+  display: "flex", alignItems: "center", justifyContent: "center",
+  overflow: "hidden", position: "relative",
+};
+
+/* ── Injected CSS animations ───────────────────────────────────────────────── */
+const animStyles = `
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes popIn {
+    0%   { opacity: 0; transform: scale(0.85); }
+    70%  { transform: scale(1.04); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+  @keyframes floatOrb {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%       { transform: translateY(-18px) scale(1.04); }
+  }
+  @keyframes activeGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+    50%       { box-shadow: 0 0 0 8px rgba(34,197,94,0); }
+  }
+  @keyframes countUp {
+    from { opacity: 0; transform: scale(0.7); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  .rp-page { animation: fadeIn 0.5s ease both; }
+  .rp-card { animation: fadeUp 0.7s cubic-bezier(0.23,1,0.32,1) 0.1s both; }
+  .rp-avatar-wrap { animation: popIn 0.6s cubic-bezier(0.23,1,0.32,1) 0.3s both; }
+  .rp-name-block { animation: fadeUp 0.6s ease 0.35s both; }
+  .rp-reg-strip { animation: fadeUp 0.5s ease 0.4s both; }
+  .rp-stat-0 { animation: fadeUp 0.5s ease 0.45s both; }
+  .rp-stat-1 { animation: fadeUp 0.5s ease 0.55s both; }
+  .rp-requests { animation: fadeUp 0.5s ease 0.6s both; }
+  .rp-actions { animation: fadeUp 0.5s ease 0.65s both; }
+
+  .rp-stat-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    position: relative; overflow: hidden;
+  }
+  .rp-stat-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.35) 50%, transparent 60%);
+    background-size: 200% 100%;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .rp-stat-card:hover { transform: translateY(-5px); }
+  .rp-stat-card:hover::before { opacity: 1; animation: shimmer 0.6s ease forwards; }
+
+  .rp-active-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 9px; font-weight: 800;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    background: #dcfce7; color: #16a34a;
+    animation: activeGlow 2.5s ease infinite;
+  }
+
+  .rp-orb-1 {
+    position: absolute;
+    width: 280px; height: 280px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(29,111,164,0.12) 0%, transparent 70%);
+    top: -60px; right: -60px;
+    pointer-events: none;
+    animation: floatOrb 8s ease-in-out infinite;
+  }
+  .rp-orb-2 {
+    position: absolute;
+    width: 180px; height: 180px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(29,111,164,0.08) 0%, transparent 70%);
+    bottom: -50px; left: -30px;
+    pointer-events: none;
+    animation: floatOrb 10s ease-in-out infinite reverse;
+  }
+
+  .rp-meta-row {
+    display: flex; flex-wrap: wrap;
+    gap: 0.75rem 1.75rem;
+    margin-top: 0.6rem;
+  }
+  .rp-meta-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 500; opacity: 0.7;
+  }
+  .rp-meta-item svg { flex-shrink: 0; opacity: 0.6; }
+
+  .rp-edit-btn {
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.25em; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.75);
+    background: transparent; cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .rp-edit-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+  .rp-section-label {
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    opacity: 0.35; margin-bottom: 1rem;
+  }
+
+  .rp-stat-number {
+    animation: countUp 0.5s cubic-bezier(0.23,1,0.32,1) both;
+  }
+`;
+
 export default function ReceiverProfile() {
-  const { id }              = useParams();
+  const { id }             = useParams();
   const { user: authUser, login } = useAuth();
 
-  const profileId = id || authUser?._id;
-  const isOwner   = authUser?._id === profileId;
+  const authUserId = authUser?._id ?? null;
+  const profileId  = id || authUserId;
+  const isOwner    = !!authUserId && !!profileId && authUserId === profileId;
 
-  // ── State ──────────────────────────────────────────────────────────────────
   const [receiver,    setReceiver]    = useState(null);
   const [requests,    setRequests]    = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [error,       setError]       = useState("");
 
-  // Avatar — only show hover overlay when in edit mode
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [uploading,     setUploading]     = useState(false);
   const [uploadMsg,     setUploadMsg]     = useState(null);
   const fileInputRef = useRef(null);
 
-  // Edit form
   const [editing,    setEditing]    = useState(false);
   const [editFields, setEditFields] = useState({});
   const [saving,     setSaving]     = useState(false);
   const [saveMsg,    setSaveMsg]    = useState(null);
 
-  // Fulfil
   const [fulfillingId, setFulfillingId] = useState(null);
 
-  // ── Load receiver + their requests ────────────────────────────────────────
+  // Guard ref: prevents multiple fetches for the same profileId + authUserId combination
+  const fetchedRef = useRef(null);
+
   useEffect(() => {
     if (!profileId) return;
+
+    const fetchKey = `${profileId}-${authUserId}`;
+    if (fetchedRef.current === fetchKey) return;
+    fetchedRef.current = fetchKey;
 
     const token = localStorage.getItem("token");
 
@@ -43,40 +192,66 @@ export default function ReceiverProfile() {
       setLoading(true);
       setError("");
       try {
-        if (isOwner && authUser) {
+        if (authUserId === profileId && token) {
+          // ── Authenticated owner viewing their own profile ──────────────────
+          // The backend returns { user: { ... } }, so we destructure one level deeper.
+          const { data: { user: freshUser } } = await axios.get(`${API}/users/profile`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          // Sync AuthContext with fresh server data
+          login(token, { ...authUser, ...freshUser });
+
           setReceiver({
-            _id:          authUser._id,
-            name:         authUser.name,
-            email:        authUser.email,
-            bloodGroup:   authUser.bloodGroup ?? "—",
-            phone:        authUser.phone      ?? "—",
-            location:     authUser.location   ?? "—",
-            role:         authUser.role,
-            registeredAt: authUser.createdAt  ?? null,
-            avatarUrl:    authUser.avatarUrl  ?? null,
+            _id:          freshUser._id,
+            name:         freshUser.name,
+            email:        freshUser.email,
+            bloodGroup:   freshUser.bloodGroup  ?? "—",
+            phone:        freshUser.phone       ?? "—",
+            location:     freshUser.location    ?? "—",
+            role:         freshUser.role,
+            registeredAt: freshUser.createdAt   ?? null,
+            avatarUrl:    freshUser.avatarUrl   ?? null,
           });
+
           setAvatarPreview(
-            authUser.avatarUrl ? `http://localhost:5000${authUser.avatarUrl}` : null
+            freshUser.avatarUrl ? `http://localhost:5000${freshUser.avatarUrl}` : null
           );
+
           setEditFields({
-            name:       authUser.name       || "",
-            phone:      authUser.phone      || "",
-            location:   authUser.location   || "",
-            bloodGroup: authUser.bloodGroup || "",
+            name:       freshUser.name       || "",
+            phone:      freshUser.phone      || "",
+            location:   freshUser.location   || "",
+            bloodGroup: freshUser.bloodGroup || "",
           });
-        } else {
-          setError("Receiver profiles are not publicly viewable.");
-          setLoading(false);
-          return;
+
+        } else if (!authUserId) {
+          // ── Anonymous user on a public /receivers/:id URL ──────────────────
+          // Receiver profiles are private so we show a minimal placeholder.
+          setReceiver({
+            _id:          profileId,
+            name:         "Receiver",
+            email:        "—",
+            bloodGroup:   "—",
+            phone:        "—",
+            location:     "—",
+            role:         "receiver",
+            registeredAt: null,
+            avatarUrl:    null,
+          });
         }
 
-        const { data } = await axios.get(`${API}/blood-requests`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const mine = data.filter(
-          (r) => r.receiverId?._id === profileId || r.receiverId === profileId
-        );
-        setRequests(mine);
+        // Fetch this receiver's blood requests (only if authenticated)
+        if (token) {
+          const { data: reqs } = await axios.get(`${API}/blood-requests`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setRequests(
+            reqs.filter(
+              (r) => r.receiverId?._id === profileId || r.receiverId === profileId
+            )
+          );
+        }
       } catch (err) {
         setError(err.response?.data?.message || "Unable to load profile.");
       } finally {
@@ -85,23 +260,18 @@ export default function ReceiverProfile() {
     };
 
     loadProfile();
-  }, [profileId, authUser, isOwner]);
+  }, [profileId, authUserId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Avatar upload ──────────────────────────────────────────────────────────
   async function handleFileChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (ev) => setAvatarPreview(ev.target.result);
     reader.readAsDataURL(file);
-
     setUploading(true);
     setUploadMsg(null);
-
     const formData = new FormData();
     formData.append("avatar", file);
-
     try {
       const { data } = await axios.post(`${API}/users/avatar`, formData, {
         headers: {
@@ -111,36 +281,27 @@ export default function ReceiverProfile() {
       });
       setAvatarPreview(`http://localhost:5000${data.avatarUrl}`);
       setReceiver((r) => ({ ...r, avatarUrl: data.avatarUrl }));
-
-      const updatedUser = { ...authUser, avatarUrl: data.avatarUrl };
-      login(localStorage.getItem("token"), updatedUser);
-
+      login(localStorage.getItem("token"), { ...authUser, avatarUrl: data.avatarUrl });
       setUploadMsg({ ok: true, text: "✓ Photo saved" });
     } catch (err) {
       setUploadMsg({ ok: false, text: err.response?.data?.message || "Upload failed" });
-      // Revert preview to the server URL on failure
-      setAvatarPreview(
-        receiver?.avatarUrl ? `http://localhost:5000${receiver.avatarUrl}` : null
-      );
+      setAvatarPreview(receiver?.avatarUrl ? `http://localhost:5000${receiver.avatarUrl}` : null);
     } finally {
       setUploading(false);
       setTimeout(() => setUploadMsg(null), 3500);
     }
   }
 
-  // ── Edit profile save ──────────────────────────────────────────────────────
   async function handleSave() {
     setSaving(true);
     setSaveMsg(null);
     try {
-      const { data } = await axios.put(`${API}/users/profile`, editFields, {
+      // PUT /users/profile also returns { user: { ... } }, destructure accordingly.
+      const { data: { user: updatedUser } } = await axios.put(`${API}/users/profile`, editFields, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-      setReceiver((r) => ({ ...r, ...data }));
-
-      const updatedUser = { ...authUser, ...data };
-      login(localStorage.getItem("token"), updatedUser);
-
+      setReceiver((r) => ({ ...r, ...updatedUser }));
+      login(localStorage.getItem("token"), { ...authUser, ...updatedUser });
       setSaveMsg({ ok: true, text: "Profile updated!" });
       setEditing(false);
     } catch (err) {
@@ -151,41 +312,37 @@ export default function ReceiverProfile() {
     }
   }
 
-  // ── Mark request fulfilled ─────────────────────────────────────────────────
-  // BloodRequest model uses "completed" (not "fulfilled") — this is the fix.
   async function handleFulfil(requestId) {
     setFulfillingId(requestId);
     try {
       await axios.put(
         `${API}/blood-requests/${requestId}`,
-        { status: "completed" },         // ← was "fulfilled", model only accepts "completed"
+        { status: "completed" },
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
       setRequests((prev) =>
         prev.map((r) => (r._id === requestId ? { ...r, status: "completed" } : r))
       );
-    } catch {
-      // Silently ignore — user can retry
-    } finally {
-      setFulfillingId(null);
-    }
+    } catch { } finally { setFulfillingId(null); }
   }
 
-  // ── Derived ────────────────────────────────────────────────────────────────
   const requestsPlaced    = requests.length;
   const requestsFulfilled = requests.filter((r) => r.status === "completed").length;
-
   const initials = receiver
     ? receiver.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
     : "??";
-
   const joinDate = receiver?.registeredAt
     ? new Date(receiver.registeredAt).toLocaleDateString("en-GB", {
         day: "2-digit", month: "short", year: "numeric",
       })
     : "—";
 
-  // ── Error / loading ────────────────────────────────────────────────────────
+  if (loading && !receiver) return (
+    <div style={bgStyle} className="min-h-screen flex items-center justify-center">
+      <div className="text-white/60 text-[10px] uppercase tracking-[0.4em] animate-pulse">Loading profile…</div>
+    </div>
+  );
+
   if (error) return (
     <div style={bgStyle} className="min-h-screen flex items-center justify-center">
       <div className="text-white/70 text-sm uppercase tracking-widest text-center px-4">
@@ -194,210 +351,183 @@ export default function ReceiverProfile() {
     </div>
   );
 
-  if (loading) return (
+  if (!receiver) return (
     <div style={bgStyle} className="min-h-screen flex items-center justify-center">
-      <div className="text-white/70 text-sm uppercase tracking-widest animate-pulse">
-        Loading profile…
+      <div className="text-white/70 text-sm uppercase tracking-widest text-center px-4">
+        <div className="text-3xl mb-4">⚠️</div>
+        Profile data unavailable. Please try refreshing the page.
       </div>
     </div>
   );
 
   return (
-    <div style={bgStyle} className="min-h-screen text-[#3D2B2B]">
-      <main className="max-w-4xl mx-auto pt-20 px-4 pb-24">
+    <>
+      <style>{animStyles}</style>
+      <div style={bgStyle} className="rp-page min-h-screen text-[#3D2B2B]">
+        <main className="max-w-4xl mx-auto pt-16 px-4 pb-24">
 
-        {/* Owner label + edit toggle */}
-        {isOwner && (
-          <div className="mb-3 flex items-center gap-2">
-            <span className="text-[9px] uppercase tracking-[0.3em] font-bold text-white/50">
-              Your profile
-            </span>
-            <button
-              onClick={() => { setEditing((v) => !v); setSaveMsg(null); }}
-              className="text-[9px] uppercase tracking-widest font-bold px-3 py-1 rounded-full border border-white/30 text-white/70 hover:bg-white/10 transition-colors"
-            >
-              {editing ? "Cancel" : "Edit profile"}
-            </button>
-          </div>
-        )}
-
-        <div style={glassCard} className="rounded-2xl p-8 md:p-12 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-[#1d6fa4]/8 rounded-bl-full pointer-events-none" />
-
-          {/* Role label */}
-          <div className="mb-6 flex items-center gap-2">
-            <span className="text-[9px] uppercase tracking-[0.3em] font-bold opacity-40">
-              Registered Receiver
-            </span>
-            <span className="text-[9px] font-extrabold uppercase tracking-widest px-3 py-1 rounded bg-green-100 text-green-700">
-              Active
-            </span>
-          </div>
-
-          {/* Top section */}
-          <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
-
-            {/* Avatar — camera overlay only visible in edit mode */}
-            <div className="relative">
-              <div
-                style={avatarStyle}
-                onClick={isOwner && editing ? () => fileInputRef.current?.click() : undefined}
-                className={isOwner && editing ? "cursor-pointer group" : "cursor-default"}
-              >
-                {avatarPreview ? (
-                  <img
-                    src={avatarPreview}
-                    alt={receiver.name}
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                ) : (
-                  <span className="text-4xl font-serif text-[#1d6fa4] select-none">
-                    {initials}
-                  </span>
-                )}
-                {/* Camera overlay — only when editing */}
-                {isOwner && editing && (
-                  <div className="absolute inset-0 rounded-full bg-black/40 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200">
-                    <CameraIcon />
-                    <span className="text-white text-[9px] font-bold uppercase tracking-wider mt-1">
-                      {uploading ? "Uploading…" : "Change photo"}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div
-                className="absolute -bottom-2 -right-2 w-12 h-12 text-white rounded-full flex items-center justify-center font-bold border-4 border-white text-sm"
-                style={{ backgroundColor: "#1d6fa4" }}
-              >
-                {receiver.bloodGroup}
-              </div>
-
-              {isOwner && (
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-              )}
-
-              {uploadMsg && (
-                <div
-                  className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest text-white"
-                  style={{ backgroundColor: uploadMsg.ok ? "#22c55e" : "#ef4444" }}
-                >
-                  {uploadMsg.text}
-                </div>
-              )}
-            </div>
-
-            {/* Name + meta */}
-            <div className="flex-1 text-center md:text-left">
-              <h1 className="text-3xl font-serif mb-2">{receiver.name}</h1>
-              <div className="flex flex-wrap justify-center md:justify-start gap-5 text-xs font-medium opacity-75">
-                <span>📍 {receiver.location || "—"}</span>
-                <span>📞 {receiver.phone    || "—"}</span>
-                <span>✉️ {receiver.email}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Edit form (owner only, shown when editing=true) ── */}
-          {isOwner && editing && (
-            <div className="mt-8 p-6 rounded-xl border border-[#E8E2D9] bg-[#FDFAF6]">
-              <p className="text-[9px] uppercase tracking-widest font-bold opacity-40 mb-4">
-                Edit profile
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  { key: "name",     label: "Full name",       type: "text" },
-                  { key: "phone",    label: "Phone",           type: "tel"  },
-                  { key: "location", label: "City / district", type: "text" },
-                ].map(({ key, label, type }) => (
-                  <div key={key}>
-                    <label className="block text-[9px] uppercase tracking-widest font-bold opacity-40 mb-1">
-                      {label}
-                    </label>
-                    <input
-                      type={type}
-                      value={editFields[key]}
-                      onChange={(e) => setEditFields((f) => ({ ...f, [key]: e.target.value }))}
-                      className="w-full border border-[#E8E2D9] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1d6fa4]"
-                    />
-                  </div>
-                ))}
-                <div>
-                  <label className="block text-[9px] uppercase tracking-widest font-bold opacity-40 mb-1">
-                    Blood group
-                  </label>
-                  <select
-                    value={editFields.bloodGroup}
-                    onChange={(e) => setEditFields((f) => ({ ...f, bloodGroup: e.target.value }))}
-                    className="w-full border border-[#E8E2D9] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1d6fa4]"
-                  >
-                    <option value="">— select —</option>
-                    {["A+","A-","B+","B-","O+","O-","AB+","AB-"].map((g) => (
-                      <option key={g} value={g}>{g}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 mt-4">
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="px-6 py-2 bg-[#1d6fa4] text-white text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-[#155b8a] transition-all disabled:opacity-50"
-                >
-                  {saving ? "Saving…" : "Save changes"}
-                </button>
-                {saveMsg && (
-                  <span
-                    className="text-xs font-semibold"
-                    style={{ color: saveMsg.ok ? "#22c55e" : "#ef4444" }}
-                  >
-                    {saveMsg.text}
-                  </span>
-                )}
-              </div>
+          {/* Owner toolbar */}
+          {isOwner && (
+            <div className="mb-4 flex items-center gap-3">
+              <span className="text-[9px] uppercase tracking-[0.35em] font-bold text-white/40">Your profile</span>
+              <button className="rp-edit-btn" onClick={() => { setEditing((v) => !v); setSaveMsg(null); }}>
+                {editing ? "Cancel" : "Edit profile"}
+              </button>
             </div>
           )}
 
-          {/* Registered date strip */}
-          <div className="mt-8 p-5 rounded-xl border border-[#F0EDE8] bg-[#FDFAF6] flex items-center gap-3">
-            <span className="text-base">📅</span>
-            <div>
-              <p className="text-[9px] uppercase tracking-widest font-bold opacity-40 mb-0.5">Registered</p>
-              <p className="text-sm font-semibold">{joinDate}</p>
+          <div style={glassCard} className="rp-card rounded-2xl p-8 md:p-12 relative overflow-hidden">
+            <div className="rp-orb-1" />
+            <div className="rp-orb-2" />
+
+            {/* Role label */}
+            <div className="mb-6 flex items-center gap-3">
+              <span className="text-[9px] uppercase tracking-[0.3em] font-bold opacity-35">Registered Receiver</span>
+              <span className="rp-active-badge">
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
+                Active
+              </span>
             </div>
-          </div>
 
-          {/* Stats — 2 cards only (no Pending) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 border-t border-[#F0EDE8] pt-8">
-            <StatBox value={requestsPlaced}    label="Requests Placed" valueClass="text-3xl font-bold text-[#AF4444]" />
-            <StatBox value={requestsFulfilled} label="Fulfilled"        valueClass="text-3xl font-bold text-green-600" />
-          </div>
+            {/* ── Header: avatar + name ── */}
+            <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
 
-          {/* ── Active requests list with mark-fulfilled (owner only) ── */}
-          {isOwner && requests.filter((r) => r.status !== "completed").length > 0 && (
-            <div className="mt-8 border-t border-[#F0EDE8] pt-8">
-              <p className="text-[9px] uppercase tracking-widest font-bold opacity-40 mb-4">
-                Active requests
-              </p>
-              <div className="flex flex-col gap-3">
-                {requests
-                  .filter((r) => r.status !== "completed")
-                  .map((r) => (
-                    <div
-                      key={r._id}
-                      className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl border border-[#E8E2D9] bg-white"
+              {/* Avatar */}
+              <div className="rp-avatar-wrap relative flex-shrink-0">
+                <div
+                  style={avatarStyle}
+                  onClick={isOwner && editing ? () => fileInputRef.current?.click() : undefined}
+                  className={isOwner && editing ? "cursor-pointer group" : "cursor-default"}
+                >
+                  {avatarPreview ? (
+                    <img src={avatarPreview} alt={receiver.name} className="w-full h-full object-cover rounded-full" />
+                  ) : (
+                    <span className="text-4xl font-serif select-none" style={{ color: "#1d6fa4" }}>{initials}</span>
+                  )}
+                  {isOwner && editing && (
+                    <div className="absolute inset-0 rounded-full bg-black/40 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200">
+                      <CameraIcon />
+                      <span className="text-white text-[9px] font-bold uppercase tracking-wider mt-1">
+                        {uploading ? "Uploading…" : "Change photo"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Blood group ring */}
+                <div
+                  className="absolute -bottom-2 -right-2 w-12 h-12 rounded-full flex items-center justify-center font-bold border-4 border-white text-sm text-white"
+                  style={{ background: "linear-gradient(135deg, #1d6fa4, #155b8a)", boxShadow: "0 4px 12px rgba(29,111,164,0.4)" }}
+                >
+                  {receiver.bloodGroup}
+                </div>
+
+                {isOwner && <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleFileChange} />}
+                {uploadMsg && (
+                  <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest text-white"
+                    style={{ backgroundColor: uploadMsg.ok ? "#22c55e" : "#ef4444" }}>
+                    {uploadMsg.text}
+                  </div>
+                )}
+              </div>
+
+              {/* Name + meta */}
+              <div className="rp-name-block flex-1 text-center md:text-left">
+                <h1 className="text-3xl font-serif tracking-tight mb-3">{receiver.name}</h1>
+                <div className="rp-meta-row justify-center md:justify-start">
+                  <span className="rp-meta-item"><PinIcon /> {receiver.location || "—"}</span>
+                  <span className="rp-meta-item"><PhoneIcon /> {receiver.phone || "—"}</span>
+                  <span className="rp-meta-item"><MailIcon /> {receiver.email}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Edit form */}
+            {isOwner && editing && (
+              <div className="mt-8 p-6 rounded-xl border border-[#E8E2D9] bg-[#FDFAF6]">
+                <p className="rp-section-label">Edit profile</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { key: "name",     label: "Full name",       type: "text" },
+                    { key: "phone",    label: "Phone",           type: "tel"  },
+                    { key: "location", label: "City / district", type: "text" },
+                  ].map(({ key, label, type }) => (
+                    <div key={key}>
+                      <label className="block text-[9px] uppercase tracking-widest font-bold opacity-40 mb-1">{label}</label>
+                      <input
+                        type={type}
+                        value={editFields[key]}
+                        onChange={(e) => setEditFields((f) => ({ ...f, [key]: e.target.value }))}
+                        className="w-full border border-[#E8E2D9] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1d6fa4]"
+                      />
+                    </div>
+                  ))}
+                  <div>
+                    <label className="block text-[9px] uppercase tracking-widest font-bold opacity-40 mb-1">Blood group</label>
+                    <select
+                      value={editFields.bloodGroup}
+                      onChange={(e) => setEditFields((f) => ({ ...f, bloodGroup: e.target.value }))}
+                      className="w-full border border-[#E8E2D9] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1d6fa4]"
                     >
+                      <option value="">— select —</option>
+                      {["A+","A-","B+","B-","O+","O-","AB+","AB-"].map((g) => (
+                        <option key={g} value={g}>{g}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 mt-4">
+                  <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="px-6 py-2 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all disabled:opacity-50"
+                    style={{ background: "#1d6fa4" }}
+                  >
+                    {saving ? "Saving…" : "Save changes"}
+                  </button>
+                  {saveMsg && (
+                    <span className="text-xs font-semibold" style={{ color: saveMsg.ok ? "#22c55e" : "#ef4444" }}>
+                      {saveMsg.text}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Registered strip */}
+            <div className="rp-reg-strip mt-8 p-4 rounded-xl flex items-center gap-3"
+              style={{ background: "rgba(29,111,164,0.06)", border: "1px solid rgba(29,111,164,0.12)" }}>
+              <CalendarIcon />
+              <div>
+                <p className="rp-section-label" style={{ marginBottom: 2 }}>Member since</p>
+                <p className="text-sm font-semibold">{joinDate}</p>
+              </div>
+            </div>
+
+            {/* ── Stats ── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-8 border-t border-black/5 pt-8">
+              <div className="rp-stat-card rp-stat-0 p-6 rounded-2xl text-center" style={statCardStyle("#AF4444")}>
+                <span className="rp-stat-number block text-4xl font-bold mb-1 text-[#AF4444]">{requestsPlaced}</span>
+                <span className="rp-section-label" style={{ marginBottom: 0 }}>Requests Placed</span>
+              </div>
+              <div className="rp-stat-card rp-stat-1 p-6 rounded-2xl text-center" style={statCardStyle("#22c55e")}>
+                <span className="rp-stat-number block text-4xl font-bold mb-1 text-green-600">{requestsFulfilled}</span>
+                <span className="rp-section-label" style={{ marginBottom: 0 }}>Fulfilled</span>
+              </div>
+            </div>
+
+            {/* ── Active requests ── */}
+            {isOwner && requests.filter((r) => r.status !== "completed").length > 0 && (
+              <div className="rp-requests mt-8 border-t border-black/5 pt-8">
+                <p className="rp-section-label">Active Requests</p>
+                <div className="flex flex-col gap-3">
+                  {requests.filter((r) => r.status !== "completed").map((r) => (
+                    <div key={r._id}
+                      className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl border border-[#E8E2D9] bg-white hover:border-[#1d6fa4]/30 transition-colors">
                       <div className="flex items-center gap-3">
                         <span
                           className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-sm flex-shrink-0"
-                          style={{ backgroundColor: "#AF4444" }}
+                          style={{ background: "linear-gradient(135deg, #AF4444, #8E3333)" }}
                         >
                           {r.bloodGroup}
                         </span>
@@ -415,57 +545,55 @@ export default function ReceiverProfile() {
                       </button>
                     </div>
                   ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Actions */}
-          {isOwner && (
-            <div className="mt-10 flex flex-col md:flex-row gap-4">
-              <Link
-                to="/request"
-                className="flex-1 text-center py-4 bg-[#AF4444] text-white text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-[#8f3030] transition-all"
-              >
-                Place a New Request
-              </Link>
-              {/* Replaced "View Blood List" with "See Fulfilled Requests" — public page */}
-              <Link
-                to="/fulfilled-requests"
-                className="flex-1 text-center py-4 border border-[#E8E2D9] text-[#3D2B2B] text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-[#F9F7F2] transition-all"
-              >
-                See Fulfilled Requests
-              </Link>
-            </div>
-          )}
-        </div>
+            {/* ── Actions ── */}
+            {isOwner && (
+              <div className="rp-actions mt-10 flex flex-col md:flex-row gap-4">
+                <Link to="/request"
+                  className="flex-1 text-center py-4 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all hover:brightness-110"
+                  style={{ background: "linear-gradient(135deg, #AF4444, #8E3333)", boxShadow: "0 8px 20px rgba(175,68,68,0.3)" }}>
+                  Place a New Request
+                </Link>
+                <Link to="/fulfilled-requests"
+                  className="flex-1 text-center py-4 border border-[#E8E2D9] text-[#3D2B2B] text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-[#F9F7F2] hover:border-[#1d6fa4]/40 transition-all">
+                  See Fulfilled Requests
+                </Link>
+              </div>
+            )}
+          </div>
 
-        <div className="mt-8 text-center">
-          <Link
-            to="/"
-            className="text-xs font-bold uppercase tracking-widest text-sky-200/70 hover:text-white transition-colors"
-          >
-            ← Back to Home
-          </Link>
-        </div>
-      </main>
-    </div>
+          <div className="mt-8 text-center">
+            <Link to="/" className="text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white transition-colors">
+              ← Back to Home
+            </Link>
+          </div>
+        </main>
+      </div>
+    </>
   );
 }
 
-// ── Sub-components ─────────────────────────────────────────────────────────────
-
-function StatBox({ value, label, valueClass }) {
-  return (
-    <div
-      className="p-6 rounded-xl text-center transition-all duration-300 hover:-translate-y-0.5"
-      style={{ backgroundColor: "#FFFFFF", border: "1px solid #E8E2D9" }}
-    >
-      <span className={`block mb-1 ${valueClass}`}>{value}</span>
-      <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">{label}</span>
-    </div>
-  );
+/* ── Helpers ───────────────────────────────────────────────────────────────── */
+function statCardStyle(accent) {
+  return { background: "#fff", border: `1px solid ${accent}22`, boxShadow: `0 4px 24px ${accent}14` };
 }
 
+/* ── SVG Icons ─────────────────────────────────────────────────────────────── */
+function PinIcon() {
+  return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>;
+}
+function PhoneIcon() {
+  return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 01.01 1.22 2 2 0 012 .01h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>;
+}
+function MailIcon() {
+  return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>;
+}
+function CalendarIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d6fa4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7 }}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
+}
 function CameraIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -474,31 +602,3 @@ function CameraIcon() {
     </svg>
   );
 }
-
-// ── Styles ─────────────────────────────────────────────────────────────────────
-
-const bgStyle = {
-  backgroundImage: "linear-gradient(135deg, rgba(15,40,80,0.88) 0%, rgba(29,78,132,0.80) 50%, rgba(15,40,80,0.88) 100%)",
-  backgroundAttachment: "fixed",
-  backgroundSize: "cover",
-  backgroundPosition: "center",
-  backgroundColor: "#0f2850",
-};
-
-const glassCard = {
-  background: "rgba(255,255,255,0.85)",
-  backdropFilter: "blur(15px)",
-  WebkitBackdropFilter: "blur(15px)",
-  border: "1px solid rgba(255,255,255,0.4)",
-  boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)",
-};
-
-const avatarStyle = {
-  width: 120, height: 120,
-  borderRadius: "50%",
-  border: "4px solid white",
-  boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
-  backgroundColor: "#F9F7F2",
-  display: "flex", alignItems: "center", justifyContent: "center",
-  overflow: "hidden", position: "relative",
-};

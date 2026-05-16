@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import signUpVideo    from "../assets/videos/sign_up_video.mp4";
 import donorVideo     from "../assets/videos/donor_reg_video.mp4";
+import regIllustration from "../assets/images/reg_page_design.png";
 
 /* ─── Styles ──────────────────────────────────────────────────────────────── */
 const styles = `
@@ -55,8 +56,65 @@ const styles = `
   }
 
   /* ══ STEP 1 — ROLE SELECTION ══════════════════════════════════════════════ */
-  .step1-wrap {
+
+  /* Illustration panel — left side on desktop */
+  .step1-illus {
+    display: none;
+    position: relative;
+    overflow: hidden;
+    background: #2a1a1a;
+  }
+  @media (min-width: 768px) {
+    .step1-illus { display: block; width: 42%; flex-shrink: 0; }
+  }
+
+  .step1-illus-img {
+    position: absolute;
+    inset: 0;
     width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center 30%;
+    /* strip the black background from the PNG */
+    mix-blend-mode: lighten;
+    opacity: 0.95;
+  }
+
+  /* rich dark overlay so the illustration pops */
+  .step1-illus::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, #3D2B2B 0%, #1a0a0a 100%);
+    z-index: 0;
+  }
+
+  .step1-illus-copy {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    z-index: 2;
+    padding: 2rem 1.75rem;
+    background: linear-gradient(to top, rgba(30,10,10,0.85) 0%, transparent 100%);
+  }
+  .step1-illus-tag {
+    font-size: 8px; font-weight: 700;
+    letter-spacing: 0.25em; text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+    display: block; margin-bottom: 0.35rem;
+  }
+  .step1-illus-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem; font-weight: 400;
+    color: #fff; line-height: 1.35;
+  }
+  .step1-illus-headline em {
+    font-style: italic;
+    color: #E5C7CE;
+  }
+
+  /* Right / content side of step 1 */
+  .step1-wrap {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -73,7 +131,12 @@ const styles = `
     letter-spacing: -0.04em;
     color: var(--deep);
   }
-  .step1-logo span { color: var(--rose); }
+  .step1-logo .logo-accent {
+    color: var(--rose);
+    font-family: 'Pacifico', cursive;
+    font-weight: 400;
+    padding-left: 2px;
+  }
 
   .step1-heading {
     font-family: 'Playfair Display', serif;
@@ -130,7 +193,18 @@ const styles = `
   .role-card.selected.receiver { border-color: var(--rose); background: #fdf0f0; }
   .role-card.selected::before  { transform: scaleX(1); }
 
-  .role-icon  { font-size: 1.75rem; margin-bottom: 0.75rem; display: block; }
+  /* SVG icon wrapper */
+  .role-icon-wrap {
+    width: 2.5rem; height: 2.5rem;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 0.85rem;
+  }
+  .role-card.donor    .role-icon-wrap { background: rgba(167,215,236,0.25); }
+  .role-card.receiver .role-icon-wrap { background: rgba(142,68,68,0.10); }
+
+  .role-icon-wrap svg { width: 1.2rem; height: 1.2rem; }
+
   .role-title {
     font-family: 'Playfair Display', serif;
     font-size: 1.1rem; font-weight: 600;
@@ -364,16 +438,51 @@ const styles = `
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
 
+/* SVG icons ---------------------------------------------------------------- */
+const BloodDropIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M12 2C12 2 5 9.5 5 14a7 7 0 0014 0C19 9.5 12 2 12 2z"
+      fill="#6a97aa"
+      stroke="#6a97aa"
+      strokeWidth="1"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const HospitalIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="6" width="18" height="15" rx="1" fill="#8E4444" opacity="0.15" stroke="#8E4444" strokeWidth="1.5"/>
+    <path d="M9 21V12h6v9" stroke="#8E4444" strokeWidth="1.5" strokeLinecap="round"/>
+    <path d="M10 9h4M12 7v4" stroke="#8E4444" strokeWidth="1.5" strokeLinecap="round"/>
+    <path d="M3 10l9-7 9 7" stroke="#8E4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 /* ─── Step 1: Role Selector ───────────────────────────────────────────────── */
 function RoleSelector({ onSelect }) {
   const [selected, setSelected] = useState("");
 
   return (
     <div className="su-card su-animate">
+
+      {/* Illustration panel — desktop left side */}
+      <div className="step1-illus">
+        <img src={regIllustration} alt="Blood donation illustration" className="step1-illus-img" />
+        <div className="step1-illus-copy">
+          <span className="step1-illus-tag">LifeLine · Blood Donor Network</span>
+          <p className="step1-illus-headline">
+            Every drop<br /><em>saves a life.</em>
+          </p>
+        </div>
+      </div>
+
+      {/* Content side */}
       <div className="step1-wrap">
 
         <div className="step1-logo">
-          Life<span>Line</span>
+          Life<span className="logo-accent">Line</span>
         </div>
 
         <div>
@@ -387,7 +496,9 @@ function RoleSelector({ onSelect }) {
             className={`role-card donor ${selected === "donor" ? "selected" : ""}`}
             onClick={() => setSelected("donor")}
           >
-            <span className="role-icon">🩸</span>
+            <div className="role-icon-wrap">
+              <BloodDropIcon />
+            </div>
             <div className="role-title">Donor</div>
             <div className="role-desc">
               Register to donate blood and receive emergency alerts matching your blood type.
@@ -400,7 +511,9 @@ function RoleSelector({ onSelect }) {
             className={`role-card receiver ${selected === "receiver" ? "selected" : ""}`}
             onClick={() => setSelected("receiver")}
           >
-            <span className="role-icon">🏥</span>
+            <div className="role-icon-wrap">
+              <HospitalIcon />
+            </div>
             <div className="role-title">Receiver</div>
             <div className="role-desc">
               Create an account to request blood in emergencies and track donor availability.
@@ -453,7 +566,7 @@ function DonorForm({ onBack }) {
         email: form.email,
         password: form.password,
         bloodGroup: form.bloodGroup,
-        phone: "", // TODO: Add phone field to form
+        phone: "",
         role: "donor",
       });
       alert(`Donor application submitted for ${form.fullName}! Please log in.`);
@@ -583,8 +696,8 @@ function ReceiverForm({ onBack }) {
         name: fullName,
         email: email,
         password: password,
-        bloodGroup: "A+", // Default, TODO: Add blood group selection
-        phone: "", // TODO: Add phone field to form
+        bloodGroup: "A+",
+        phone: "",
         role: "receiver",
       });
       alert(`Account created for ${fullName}! Please log in.`);

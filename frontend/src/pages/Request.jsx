@@ -476,7 +476,7 @@ function EmergencyCounter({ used, limit, resetInSeconds, formatCountdown }) {
 export default function Request() {
   const { user } = useAuth();
   const [form, setForm] = useState({
-    bloodGroup:   "A+",
+    bloodGroup: user?.bloodGroup || "A+",
     hospital:     "",
     location:     "",
     unitsNeeded:  1,

@@ -305,7 +305,7 @@ const styles = `
     box-shadow: 0 2px 6px rgba(0,0,0,0.06);
   }
 
-  /* Avatar initials */
+  /* Avatar */
   .donor-avatar-wrap { margin-bottom: 1.5rem; position: relative; display: inline-block; }
   .donor-avatar {
     width: 6rem; height: 6rem; border-radius: 50%;
@@ -313,6 +313,13 @@ const styles = `
     font-family: 'Playfair Display', serif;
     font-size: 1.5rem; font-weight: 600;
     color: #fff; margin: 0 auto;
+    overflow: hidden;
+  }
+  .donor-avatar img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
   }
   .donor-tier-badge {
     position: absolute; bottom: -0.5rem; right: -0.25rem;
@@ -653,11 +660,10 @@ function timeAgo(dateStr) {
 
 function donorTier(count) {
   if (count >= 20) return { tier: "Platinum", tierColor: "#E5E4E2", tierText: "#3D2B2B" };
-  if (count >= 10) return { tier: "Gold", tierColor: "#D4AF37", tierText: "#fff" };
-  if (count >= 5) return { tier: "Silver", tierColor: "#C0C0C0", tierText: "#fff" };
-  return { tier: "Bronze", tierColor: "#CD7F32", tierText: "#fff" };
+  if (count >= 10) return { tier: "Gold",     tierColor: "#D4AF37", tierText: "#fff" };
+  if (count >= 5)  return { tier: "Silver",   tierColor: "#C0C0C0", tierText: "#fff" };
+  return                  { tier: "Bronze",   tierColor: "#CD7F32", tierText: "#fff" };
 }
-
 
 function AuthGateModal({ reason, onClose }) {
   const messages = {
@@ -706,6 +712,8 @@ export default function Home() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   // ── Real data from API ──────────────────────────────────────────────────
   const [emergencyRequests, setEmergencyRequests] = useState([]);
   const [topDonors, setTopDonors] = useState([]);
@@ -713,8 +721,6 @@ export default function Home() {
   const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
-    const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
     Promise.all([
       fetch(`${BASE}/api/blood-requests/emergency`).then(r => r.json()),
       fetch(`${BASE}/api/donations/top-donors`).then(r => r.json()),
@@ -733,7 +739,6 @@ export default function Home() {
     if (bloodGroup) navigate(`/donors?blood=${bloodGroup}`);
   };
 
-  // Gate: donor-only actions (donate, reserve)
   const handleDonorAction = (path) => {
     if (user?.role === "donor") navigate(path);
     else setModal(path === "/reserve" ? "reserve" : "donate");
@@ -758,14 +763,11 @@ export default function Home() {
               <span className="hero-accent">Save a Life Today.</span>
             </h2>
             <p className="hero-sub">
-              Connecting donors and patients in Dhaka with real-time tracking and emergency alerts.
+              Connecting donors and patients in Bangladesh with real-time tracking and emergency alerts.
             </p>
 
             <div className="hero-btns">
-              {/* Request Blood — public, no login needed */}
               <Link to="/request" className="btn-primary">Request Blood</Link>
-
-              {/* Donate Now — donor only; others see modal */}
               <button
                 className="btn-reserve"
                 onClick={() => handleDonorAction("/blood-list")}
@@ -774,7 +776,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Quick Search */}
             <div className="quick-search">
               <span className="qs-label">Quick Donor Search</span>
               <div className="qs-row">
@@ -797,7 +798,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Reserve Slot — sits below the search box, donor-only */}
             <button
               className="qs-reserve-btn"
               onClick={() => handleDonorAction("/reserve")}
@@ -882,20 +882,35 @@ export default function Home() {
               <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>No donation records yet — be the first!</p>
             ) : (
               topDonors.map((d) => {
-                const name = d.donor?.name || "Anonymous";
-                const blood = d.donor?.bloodGroup || "—";
-                const count = d.donationCount ?? 0;
+                const name  = d.donor?.name       || "Anonymous";
+                const blood = d.donor?.bloodGroup  || "—";
+                const count = d.donationCount      ?? 0;
                 const { tier, tierColor, tierText } = donorTier(count);
+
                 return (
                   <div key={d.donor?._id || name} className="donor-card">
                     <div className="donor-blood-badge">{blood}</div>
 
                     <div className="donor-avatar-wrap">
+                      {/* ── FIX: render uploaded avatar when available ── */}
                       <div
                         className="donor-avatar"
-                        style={{ background: avatarColor(name) }}
+                        style={d.donor?.avatarUrl ? {} : { background: avatarColor(name) }}
                       >
-                        {initials(name)}
+                        {d.donor?.avatarUrl ? (
+                          <img
+                            src={`${BASE}${d.donor.avatarUrl}`}
+                            alt={name}
+                            onError={e => {
+                              // Fallback to initials if image fails to load
+                              e.currentTarget.style.display = "none";
+                              e.currentTarget.parentElement.style.background = avatarColor(name);
+                              e.currentTarget.parentElement.textContent = initials(name);
+                            }}
+                          />
+                        ) : (
+                          initials(name)
+                        )}
                       </div>
                       <div
                         className="donor-tier-badge"
@@ -970,7 +985,6 @@ export default function Home() {
           </div>
 
           <div className="hiw-grid">
-            {/* Step 1 */}
             <div className="process-step">
               <div className="step-circle outline">
                 <span className="step-num">01</span>
@@ -983,7 +997,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Step 2 */}
             <div className="process-step">
               <div className="step-circle outline">
                 <span className="step-num">02</span>
@@ -996,7 +1009,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Step 3 */}
             <div className="process-step">
               <div className="step-circle filled">
                 <span className="step-num">03</span>
@@ -1020,7 +1032,6 @@ export default function Home() {
         <div className="section-inner">
           <div className="footer-grid">
 
-            {/* Brand */}
             <div>
               <div className="footer-brand">LifeLine</div>
               <p className="footer-tagline">
@@ -1034,7 +1045,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Navigation */}
             <div>
               <div className="footer-heading">Navigation</div>
               <ul className="footer-links">
@@ -1045,7 +1055,6 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Support */}
             <div>
               <div className="footer-heading">Support</div>
               <ul className="footer-links">
@@ -1056,7 +1065,6 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Newsletter */}
             <div>
               <div className="footer-heading">Newsletter</div>
               <p className="footer-newsletter-text">
@@ -1074,7 +1082,6 @@ export default function Home() {
 
           </div>
 
-          {/* Bottom bar */}
           <div className="footer-bottom">
             <p className="footer-copy">© 2026 LifeLine. All rights reserved.</p>
             <div style={{ textAlign: "right" }}>
