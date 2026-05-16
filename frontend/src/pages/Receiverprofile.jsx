@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 
 const API = "http://localhost:5000/api";
 
-/* ── Styles (defined up top so they're available when JSX renders) ─────────── */
+/* ── Styles ─────────────────────────────────────────────────────────────────── */
 const bgStyle = {
   backgroundImage: `
     radial-gradient(ellipse at 20% 50%, rgba(175,68,68,0.15) 0%, transparent 50%),
@@ -36,7 +36,6 @@ const avatarStyle = {
   overflow: "hidden", position: "relative",
 };
 
-/* ── Injected CSS animations ───────────────────────────────────────────────── */
 const animStyles = `
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(28px); }
@@ -66,6 +65,10 @@ const animStyles = `
   @keyframes countUp {
     from { opacity: 0; transform: scale(0.7); }
     to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.92) translateY(12px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
   }
 
   .rp-page { animation: fadeIn 0.5s ease both; }
@@ -149,6 +152,68 @@ const animStyles = `
   .rp-stat-number {
     animation: countUp 0.5s cubic-bezier(0.23,1,0.32,1) both;
   }
+
+  /* ── Phone modal ── */
+  .fulfil-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999;
+    animation: fadeIn 0.2s ease both;
+  }
+  .fulfil-modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 32px 28px;
+    width: 100%; max-width: 380px;
+    box-shadow: 0 32px 64px rgba(0,0,0,0.3);
+    animation: modalIn 0.3s cubic-bezier(0.23,1,0.32,1) both;
+  }
+  .fulfil-modal h3 {
+    font-size: 16px; font-weight: 700;
+    color: #1a1a1a; margin-bottom: 6px;
+  }
+  .fulfil-modal p {
+    font-size: 13px; color: #666;
+    line-height: 1.5; margin-bottom: 20px;
+  }
+  .fulfil-phone-input {
+    width: 100%;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 8px;
+  }
+  .fulfil-phone-input:focus { border-color: #22c55e; }
+  .fulfil-warning {
+    font-size: 11px; color: #f59e0b;
+    margin-bottom: 16px; line-height: 1.4;
+  }
+  .fulfil-btns {
+    display: flex; gap: 10px; margin-top: 16px;
+  }
+  .fulfil-btn-confirm {
+    flex: 1; padding: 10px;
+    background: #22c55e; color: white;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    border: none; border-radius: 10px; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .fulfil-btn-confirm:hover:not(:disabled) { background: #16a34a; }
+  .fulfil-btn-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+  .fulfil-btn-skip {
+    flex: 1; padding: 10px;
+    background: transparent; color: #999;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    border: 2px solid #e5e7eb; border-radius: 10px; cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .fulfil-btn-skip:hover { border-color: #ccc; color: #666; }
 `;
 
 export default function ReceiverProfile() {
@@ -174,9 +239,12 @@ export default function ReceiverProfile() {
   const [saving,     setSaving]     = useState(false);
   const [saveMsg,    setSaveMsg]    = useState(null);
 
-  const [fulfillingId, setFulfillingId] = useState(null);
+  // ── Fulfil modal state ──────────────────────────────────────────────────────
+  const [fulfilModal,   setFulfilModal]   = useState(null); // { requestId, unitsNeeded }
+  const [donorPhone,    setDonorPhone]    = useState("");
+  const [fulfilLoading, setFulfilLoading] = useState(false);
+  const [fulfilMsg,     setFulfilMsg]     = useState(null); // { ok, text }
 
-  // Guard ref: prevents multiple fetches for the same profileId + authUserId combination
   const fetchedRef = useRef(null);
 
   useEffect(() => {
@@ -193,13 +261,10 @@ export default function ReceiverProfile() {
       setError("");
       try {
         if (authUserId === profileId && token) {
-          // ── Authenticated owner viewing their own profile ──────────────────
-          // The backend returns { user: { ... } }, so we destructure one level deeper.
           const { data: { user: freshUser } } = await axios.get(`${API}/users/profile`, {
             headers: { Authorization: `Bearer ${token}` },
           });
 
-          // Sync AuthContext with fresh server data
           login(token, { ...authUser, ...freshUser });
 
           setReceiver({
@@ -226,8 +291,6 @@ export default function ReceiverProfile() {
           });
 
         } else if (!authUserId) {
-          // ── Anonymous user on a public /receivers/:id URL ──────────────────
-          // Receiver profiles are private so we show a minimal placeholder.
           setReceiver({
             _id:          profileId,
             name:         "Receiver",
@@ -241,7 +304,6 @@ export default function ReceiverProfile() {
           });
         }
 
-        // Fetch this receiver's blood requests (only if authenticated)
         if (token) {
           const { data: reqs } = await axios.get(`${API}/blood-requests`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -296,7 +358,6 @@ export default function ReceiverProfile() {
     setSaving(true);
     setSaveMsg(null);
     try {
-      // PUT /users/profile also returns { user: { ... } }, destructure accordingly.
       const { data: { user: updatedUser } } = await axios.put(`${API}/users/profile`, editFields, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
@@ -312,18 +373,57 @@ export default function ReceiverProfile() {
     }
   }
 
-  async function handleFulfil(requestId) {
-    setFulfillingId(requestId);
+  // ── Open the fulfil modal ───────────────────────────────────────────────────
+  function openFulfilModal(requestId, unitsNeeded) {
+    setDonorPhone("");
+    setFulfilMsg(null);
+    setFulfilModal({ requestId, unitsNeeded });
+  }
+
+  function closeFulfilModal() {
+    setFulfilModal(null);
+    setDonorPhone("");
+    setFulfilMsg(null);
+  }
+
+  // ── Actually submit the fulfil ─────────────────────────────────────────────
+  async function handleFulfilSubmit(skipPhone = false) {
+    if (!fulfilModal) return;
+    setFulfilLoading(true);
+    setFulfilMsg(null);
+
+    const body = { status: "completed" };
+    if (!skipPhone && donorPhone.trim()) {
+      body.donorPhone = donorPhone.trim();
+    }
+
     try {
-      await axios.put(
-        `${API}/blood-requests/${requestId}`,
-        { status: "completed" },
+      const { data } = await axios.put(
+        `${API}/blood-requests/${fulfilModal.requestId}`,
+        body,
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
+
+      // Update local requests list
       setRequests((prev) =>
-        prev.map((r) => (r._id === requestId ? { ...r, status: "completed" } : r))
+        prev.map((r) => (r._id === fulfilModal.requestId ? { ...r, status: "completed" } : r))
       );
-    } catch { } finally { setFulfillingId(null); }
+
+      if (data.donorWarning) {
+        // Phone not matched — warn but still close
+        setFulfilMsg({ ok: false, text: data.donorWarning });
+        setTimeout(closeFulfilModal, 4000);
+      } else if (data.donorName) {
+        setFulfilMsg({ ok: true, text: `✓ Marked fulfilled! Donation recorded for ${data.donorName}.` });
+        setTimeout(closeFulfilModal, 2500);
+      } else {
+        closeFulfilModal();
+      }
+    } catch (err) {
+      setFulfilMsg({ ok: false, text: err.response?.data?.message || "Something went wrong." });
+    } finally {
+      setFulfilLoading(false);
+    }
   }
 
   const requestsPlaced    = requests.length;
@@ -363,10 +463,56 @@ export default function ReceiverProfile() {
   return (
     <>
       <style>{animStyles}</style>
+
+      {/* ── Fulfil modal ── */}
+      {fulfilModal && (
+        <div className="fulfil-overlay" onClick={(e) => e.target === e.currentTarget && closeFulfilModal()}>
+          <div className="fulfil-modal">
+            <h3>🩸 Who donated to you?</h3>
+            <p>
+              Enter the phone number of the donor who called and helped you.
+              We'll update their donation count automatically!
+            </p>
+            <input
+              className="fulfil-phone-input"
+              type="tel"
+              placeholder="e.g. 01711123456"
+              value={donorPhone}
+              onChange={(e) => setDonorPhone(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleFulfilSubmit(false)}
+              autoFocus
+            />
+            {fulfilMsg && (
+              <div className="fulfil-warning" style={{ color: fulfilMsg.ok ? "#22c55e" : "#f59e0b" }}>
+                {fulfilMsg.text}
+              </div>
+            )}
+            <div className="fulfil-btns">
+              <button
+                className="fulfil-btn-confirm"
+                onClick={() => handleFulfilSubmit(false)}
+                disabled={fulfilLoading || !donorPhone.trim()}
+              >
+                {fulfilLoading ? "Saving…" : "Confirm"}
+              </button>
+              <button
+                className="fulfil-btn-skip"
+                onClick={() => handleFulfilSubmit(true)}
+                disabled={fulfilLoading}
+              >
+                Skip
+              </button>
+            </div>
+            <p style={{ fontSize: 10, color: "#bbb", marginTop: 12, textAlign: "center" }}>
+              Tap Skip if you don't have the donor's number right now
+            </p>
+          </div>
+        </div>
+      )}
+
       <div style={bgStyle} className="rp-page min-h-screen text-[#3D2B2B]">
         <main className="max-w-4xl mx-auto pt-16 px-4 pb-24">
 
-          {/* Owner toolbar */}
           {isOwner && (
             <div className="mb-4 flex items-center gap-3">
               <span className="text-[9px] uppercase tracking-[0.35em] font-bold text-white/40">Your profile</span>
@@ -380,7 +526,6 @@ export default function ReceiverProfile() {
             <div className="rp-orb-1" />
             <div className="rp-orb-2" />
 
-            {/* Role label */}
             <div className="mb-6 flex items-center gap-3">
               <span className="text-[9px] uppercase tracking-[0.3em] font-bold opacity-35">Registered Receiver</span>
               <span className="rp-active-badge">
@@ -389,10 +534,7 @@ export default function ReceiverProfile() {
               </span>
             </div>
 
-            {/* ── Header: avatar + name ── */}
             <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
-
-              {/* Avatar */}
               <div className="rp-avatar-wrap relative flex-shrink-0">
                 <div
                   style={avatarStyle}
@@ -414,7 +556,6 @@ export default function ReceiverProfile() {
                   )}
                 </div>
 
-                {/* Blood group ring */}
                 <div
                   className="absolute -bottom-2 -right-2 w-12 h-12 rounded-full flex items-center justify-center font-bold border-4 border-white text-sm text-white"
                   style={{ background: "linear-gradient(135deg, #1d6fa4, #155b8a)", boxShadow: "0 4px 12px rgba(29,111,164,0.4)" }}
@@ -431,7 +572,6 @@ export default function ReceiverProfile() {
                 )}
               </div>
 
-              {/* Name + meta */}
               <div className="rp-name-block flex-1 text-center md:text-left">
                 <h1 className="text-3xl font-serif tracking-tight mb-3">{receiver.name}</h1>
                 <div className="rp-meta-row justify-center md:justify-start">
@@ -442,7 +582,6 @@ export default function ReceiverProfile() {
               </div>
             </div>
 
-            {/* Edit form */}
             {isOwner && editing && (
               <div className="mt-8 p-6 rounded-xl border border-[#E8E2D9] bg-[#FDFAF6]">
                 <p className="rp-section-label">Edit profile</p>
@@ -494,7 +633,6 @@ export default function ReceiverProfile() {
               </div>
             )}
 
-            {/* Registered strip */}
             <div className="rp-reg-strip mt-8 p-4 rounded-xl flex items-center gap-3"
               style={{ background: "rgba(29,111,164,0.06)", border: "1px solid rgba(29,111,164,0.12)" }}>
               <CalendarIcon />
@@ -504,7 +642,6 @@ export default function ReceiverProfile() {
               </div>
             </div>
 
-            {/* ── Stats ── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-8 border-t border-black/5 pt-8">
               <div className="rp-stat-card rp-stat-0 p-6 rounded-2xl text-center" style={statCardStyle("#AF4444")}>
                 <span className="rp-stat-number block text-4xl font-bold mb-1 text-[#AF4444]">{requestsPlaced}</span>
@@ -536,12 +673,12 @@ export default function ReceiverProfile() {
                           <p className="text-xs opacity-50">{r.location} · {r.unitsNeeded} unit{r.unitsNeeded !== 1 ? "s" : ""}</p>
                         </div>
                       </div>
+                      {/* ── NEW: opens phone modal instead of directly fulfilling ── */}
                       <button
-                        onClick={() => handleFulfil(r._id)}
-                        disabled={fulfillingId === r._id}
-                        className="text-[9px] uppercase tracking-widest font-bold px-4 py-1.5 rounded-full border border-green-500 text-green-600 hover:bg-green-50 transition-all disabled:opacity-40 flex-shrink-0"
+                        onClick={() => openFulfilModal(r._id, r.unitsNeeded)}
+                        className="text-[9px] uppercase tracking-widest font-bold px-4 py-1.5 rounded-full border border-green-500 text-green-600 hover:bg-green-50 transition-all flex-shrink-0"
                       >
-                        {fulfillingId === r._id ? "Saving…" : "Mark fulfilled"}
+                        Mark fulfilled
                       </button>
                     </div>
                   ))}
@@ -549,7 +686,6 @@ export default function ReceiverProfile() {
               </div>
             )}
 
-            {/* ── Actions ── */}
             {isOwner && (
               <div className="rp-actions mt-10 flex flex-col md:flex-row gap-4">
                 <Link to="/request"
@@ -576,12 +712,10 @@ export default function ReceiverProfile() {
   );
 }
 
-/* ── Helpers ───────────────────────────────────────────────────────────────── */
 function statCardStyle(accent) {
   return { background: "#fff", border: `1px solid ${accent}22`, boxShadow: `0 4px 24px ${accent}14` };
 }
 
-/* ── SVG Icons ─────────────────────────────────────────────────────────────── */
 function PinIcon() {
   return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>;
 }

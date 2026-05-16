@@ -1,4 +1,7 @@
 import BloodRequest from "../models/BloodRequest.js";
+import User from "../models/User.js";
+import Donation from "../models/Donation.js";
+import { syncDonorStats } from "./donationController.js";
 
 // ─── helpers ───────────────────────────────────────────────────────────────────
 const startOfToday = () => {
@@ -25,7 +28,6 @@ const createBloodRequest = async (req, res) => {
       });
 
       if (count >= 3) {
-        // Calculate seconds until midnight so the frontend can show a countdown
         const midnight = new Date();
         midnight.setHours(24, 0, 0, 0);
         const resetInSeconds = Math.floor((midnight - Date.now()) / 1000);
@@ -38,7 +40,6 @@ const createBloodRequest = async (req, res) => {
         });
       }
 
-      // Attach current count to the response body so the frontend can update the UI
       req._emergencyCountAfter = count + 1;
     }
 
@@ -53,7 +54,6 @@ const createBloodRequest = async (req, res) => {
 
     return res.status(201).json({
       ...bloodRequest.toObject(),
-      // Only included when isEmergency so the frontend can refresh the counter
       ...(isEmergency && {
         emergencyRequestsUsed:  req._emergencyCountAfter,
         emergencyRequestsLimit: 3,
@@ -66,7 +66,6 @@ const createBloodRequest = async (req, res) => {
 };
 
 // ─── GET today's emergency request count for the logged-in user ────────────────
-// Used by the frontend to show "X/3 emergency requests used today" on page load
 const getEmergencyUsageToday = async (req, res) => {
   try {
     const count = await BloodRequest.countDocuments({
@@ -142,6 +141,9 @@ const getBloodRequestById = async (req, res) => {
 };
 
 // ─── UPDATE blood request ──────────────────────────────────────────────────────
+// When marking as "completed", the receiver can optionally pass donorPhone.
+// If donorPhone is provided, we look up that donor and record a Donation so
+// the donor's donation count and cooldown are updated automatically.
 const updateBloodRequest = async (req, res) => {
   try {
     const bloodRequest = await BloodRequest.findById(req.params.id);
@@ -154,17 +156,58 @@ const updateBloodRequest = async (req, res) => {
       return res.status(403).json({ message: "Not authorized to update this request." });
     }
 
-    // "receiverId" intentionally excluded — owner cannot reassign a request to another user
+    const { donorPhone, ...rest } = req.body;
+
+    // Apply normal field updates
     const updates = ["bloodGroup", "hospital", "location", "unitsNeeded", "isEmergency", "status"];
     updates.forEach((field) => {
-      if (req.body[field] !== undefined) bloodRequest[field] = req.body[field];
+      if (rest[field] !== undefined) bloodRequest[field] = rest[field];
     });
 
     await bloodRequest.save();
+
+    // ── If marking completed and donorPhone provided, record the donation ──
+    if (rest.status === "completed" && donorPhone) {
+      // Normalise phone: strip spaces/dashes so "01711 123456" matches "01711123456"
+      const normPhone = donorPhone.replace(/[\s\-]/g, "");
+
+      const donor = await User.findOne({
+        role:  "donor",
+        phone: { $regex: new RegExp(normPhone.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) },
+      });
+
+      if (!donor) {
+        // Request was still marked fulfilled — just warn about the phone
+        return res.status(200).json({
+          ...bloodRequest.toObject(),
+          donorWarning: `No donor found with phone number "${donorPhone}". Request marked fulfilled but donation count was NOT updated. Double-check the number.`,
+        });
+      }
+
+      // Create a donation record (units from the request)
+      await Donation.create({
+        donorId:    donor._id,
+        receiverId: req.user._id,
+        units:      bloodRequest.unitsNeeded,
+      });
+
+      // Sync donor stats (count + lastDonatedAt) from source of truth
+      await syncDonorStats(donor._id);
+
+      // Mark donor unavailable for 90 days
+      await User.findByIdAndUpdate(donor._id, { availability: "unavailable" });
+
+      return res.status(200).json({
+        ...bloodRequest.toObject(),
+        donorName: donor.name,
+        donorId:   donor._id,
+      });
+    }
+
     return res.status(200).json(bloodRequest);
   } catch (error) {
     console.error("Error updating blood request:", error);
-    return res.status(500).json({ message: "Failed to update blood request." });
+    return res.status(500).json({ message: "Failed to update blood request.", error: error.message });
   }
 };
 
@@ -190,9 +233,6 @@ const deleteBloodRequest = async (req, res) => {
 };
 
 // ─── GET live stats (for Home.jsx) ────────────────────────────────────────────
-// Replaces the hardcoded mock data currently on the Home page
-import User from "../models/User.js";
-
 const getLiveStats = async (req, res) => {
   try {
     const [totalDonors, totalRequests, emergencyRequests, fulfilledRequests] =
